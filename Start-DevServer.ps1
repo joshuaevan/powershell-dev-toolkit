@@ -1,0 +1,181 @@
+<#
+.SYNOPSIS
+    Quick dev server launcher based on project type.
+
+.DESCRIPTION
+    Auto-detects project type and starts the appropriate development server.
+    Supports Node.js (npm), PHP built-in server, Python, and more.
+
+.PARAMETER Type
+    Force a specific server type: node, php, python, laravel.
+
+.PARAMETER Port
+    Override the default port.
+
+.PARAMETER Host
+    Host to bind to (default: localhost).
+
+.EXAMPLE
+    serve                  # Auto-detect and start
+    serve -Port 8080       # Override port
+    serve php              # Force PHP built-in server
+    serve node             # Force npm/node
+#>
+
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [ValidateSet('node', 'php', 'python', 'laravel', 'auto', '')]
+    [string]$Type = 'auto',
+
+    [int]$Port,
+
+    [string]$Host = 'localhost'
+)
+
+# Detect project type
+function Get-ProjectType {
+    # Laravel (check first, before generic PHP)
+    if (Test-Path '.\artisan') {
+        return 'laravel'
+    }
+    
+    # Node.js
+    if (Test-Path '.\package.json') {
+        return 'node'
+    }
+    
+    # PHP
+    if ((Test-Path '.\index.php') -or (Test-Path '.\public\index.php') -or (Test-Path '.\composer.json')) {
+        return 'php'
+    }
+    
+    # Python
+    if ((Test-Path '.\manage.py') -or (Test-Path '.\app.py') -or (Test-Path '.\main.py')) {
+        return 'python'
+    }
+    
+    return $null
+}
+
+# Auto-detect if needed
+if ($Type -eq 'auto' -or [string]::IsNullOrEmpty($Type)) {
+    $Type = Get-ProjectType
+    if (-not $Type) {
+        Write-Host ""
+        Write-Host "Could not detect project type." -ForegroundColor Red
+        Write-Host "Specify type: serve node | serve php | serve python | serve laravel" -ForegroundColor Yellow
+        Write-Host ""
+        exit 1
+    }
+    Write-Host ""
+    Write-Host "Detected: " -NoNewline -ForegroundColor Cyan
+    Write-Host $Type -ForegroundColor Green
+}
+
+# Set default ports
+$defaultPorts = @{
+    'node' = 3000
+    'php' = 8000
+    'python' = 8000
+    'laravel' = 8000
+}
+
+if (-not $Port) {
+    $Port = $defaultPorts[$Type]
+}
+
+# Check if port is in use
+$portInUse = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+if ($portInUse) {
+    Write-Host ""
+    Write-Host "Port $Port is already in use!" -ForegroundColor Red
+    Write-Host "Use " -NoNewline -ForegroundColor Gray
+    Write-Host "port $Port" -NoNewline -ForegroundColor Yellow
+    Write-Host " to see what's using it, or " -NoNewline -ForegroundColor Gray
+    Write-Host "serve -Port <number>" -NoNewline -ForegroundColor Yellow
+    Write-Host " to use a different port." -ForegroundColor Gray
+    Write-Host ""
+    exit 1
+}
+
+Write-Host ""
+Write-Host "Starting $Type dev server on " -NoNewline -ForegroundColor Cyan
+Write-Host "http://${Host}:${Port}" -ForegroundColor Yellow
+Write-Host "Press Ctrl+C to stop" -ForegroundColor DarkGray
+Write-Host ""
+
+switch ($Type) {
+    'node' {
+        # Check for package.json scripts
+        if (Test-Path '.\package.json') {
+            $pkg = Get-Content '.\package.json' -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
+            
+            # Try common dev script names
+            $devScripts = @('dev', 'start', 'serve', 'develop')
+            $script = $devScripts | Where-Object { $pkg.scripts.$_ } | Select-Object -First 1
+            
+            if ($script) {
+                Write-Host "Running: npm run $script" -ForegroundColor DarkGray
+                Write-Host ""
+                npm run $script
+            } else {
+                Write-Host "No dev script found in package.json" -ForegroundColor Yellow
+                Write-Host "Available scripts: $($pkg.scripts.PSObject.Properties.Name -join ', ')" -ForegroundColor DarkGray
+            }
+        } else {
+            Write-Host "No package.json found" -ForegroundColor Red
+        }
+    }
+    
+    'php' {
+        # Determine document root
+        $docRoot = '.'
+        if (Test-Path '.\public') {
+            $docRoot = '.\public'
+        } elseif (Test-Path '.\web') {
+            $docRoot = '.\web'
+        } elseif (Test-Path '.\htdocs') {
+            $docRoot = '.\htdocs'
+        }
+        
+        Write-Host "Document root: $docRoot" -ForegroundColor DarkGray
+        Write-Host ""
+        php -S "${Host}:${Port}" -t $docRoot
+    }
+    
+    'laravel' {
+        Write-Host "Running: php artisan serve --port=$Port" -ForegroundColor DarkGray
+        Write-Host ""
+        php artisan serve --host=$Host --port=$Port
+    }
+    
+    'python' {
+        # Django
+        if (Test-Path '.\manage.py') {
+            Write-Host "Running: python manage.py runserver ${Port}" -ForegroundColor DarkGray
+            Write-Host ""
+            python manage.py runserver "${Host}:${Port}"
+        }
+        # Flask
+        elseif (Test-Path '.\app.py') {
+            Write-Host "Running: flask run --port $Port" -ForegroundColor DarkGray
+            Write-Host ""
+            $env:FLASK_APP = 'app.py'
+            $env:FLASK_ENV = 'development'
+            flask run --host=$Host --port=$Port
+        }
+        # FastAPI / Uvicorn
+        elseif (Test-Path '.\main.py') {
+            Write-Host "Running: uvicorn main:app --port $Port" -ForegroundColor DarkGray
+            Write-Host ""
+            uvicorn main:app --host $Host --port $Port --reload
+        }
+        else {
+            # Simple Python HTTP server
+            Write-Host "Running: python -m http.server $Port" -ForegroundColor DarkGray
+            Write-Host ""
+            python -m http.server $Port --bind $Host
+        }
+    }
+}

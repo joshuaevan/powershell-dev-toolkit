@@ -1,0 +1,189 @@
+# Contributing to PowerShell Dev Toolkit
+
+First off, thank you for considering contributing to PowerShell Dev Toolkit! 🎉
+
+## How Can I Contribute?
+
+### Reporting Bugs
+
+Before creating bug reports, please check the existing issues to avoid duplicates. When you create a bug report, include as many details as possible:
+
+- **Use a clear and descriptive title**
+- **Describe the exact steps to reproduce the problem**
+- **Provide specific examples**
+- **Describe the behavior you observed and what you expected**
+- **Include PowerShell version** (`$PSVersionTable.PSVersion`)
+- **Include Windows version**
+- **Include relevant logs or error messages**
+
+### Suggesting Enhancements
+
+Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, include:
+
+- **Use a clear and descriptive title**
+- **Provide a step-by-step description of the suggested enhancement**
+- **Provide specific examples to demonstrate the steps**
+- **Describe the current behavior and explain which behavior you expected to see**
+- **Explain why this enhancement would be useful**
+
+### Pull Requests
+
+1. **Fork the repository**
+2. **Create a new branch** from `main`:
+   ```powershell
+   git checkout -b feature/your-feature-name
+   ```
+3. **Make your changes**:
+   - Follow the existing code style
+   - Add comments for complex logic
+   - Update documentation if needed
+4. **Test your changes**:
+   - Test on a clean Windows machine if possible
+   - Ensure backward compatibility
+5. **Commit your changes**:
+   ```powershell
+   git commit -m "Add feature: your feature description"
+   ```
+6. **Push to your fork**:
+   ```powershell
+   git push origin feature/your-feature-name
+   ```
+7. **Open a Pull Request** with a clear title and description
+
+## Coding Standards
+
+### PowerShell Script Guidelines
+
+1. **Use meaningful variable names**
+   ```powershell
+   # Good
+   $serverHostname = "example.com"
+   
+   # Bad
+   $s = "example.com"
+   ```
+
+2. **Include comment-based help** for all scripts
+   ```powershell
+   <#
+   .SYNOPSIS
+       Brief description
+   
+   .DESCRIPTION
+       Detailed description
+   
+   .PARAMETER Name
+       Parameter description
+   
+   .EXAMPLE
+       script.ps1 -Name "test"
+   #>
+   ```
+
+3. **Use approved verbs** for function names
+   - Get-, Set-, New-, Remove-, Add-, etc.
+   - Check: `Get-Verb`
+
+4. **Handle errors gracefully**
+   ```powershell
+   try {
+       # Your code
+   } catch {
+       Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+       exit 1
+   }
+   ```
+
+5. **Support common parameters** when appropriate
+   ```powershell
+   [CmdletBinding()]
+   param(
+       [Parameter(Mandatory=$true)]
+       [string]$Name
+   )
+   ```
+
+6. **Provide meaningful output**
+   - Use colored output for better UX
+   - Support `-AsJson` for programmatic use where appropriate
+   - Show progress for long-running operations
+
+### Configuration
+
+- **Never hardcode user-specific information**
+- **Use `config.json` for user settings**
+- **Provide sensible defaults**
+- **Document all configuration options** in `config.example.json`
+
+### Security
+
+- **Never commit credentials** or sensitive data
+- **Use encrypted credential storage** (Export-Clixml)
+- **Always validate user input**
+- **Use secure connections** (SSH, HTTPS)
+
+## Documentation
+
+- Update `README.md` if you add new features
+- Add examples to help text
+- Document configuration options
+- Update `helpme.ps1` for new commands
+
+## Testing
+
+While we don't have automated tests yet, please:
+
+1. **Test your changes manually** on Windows 10 and 11
+2. **Test with PowerShell 5.1 and 7+**
+3. **Test without WSL** (fallback scenarios)
+4. **Test with missing dependencies** (graceful degradation)
+
+## Project Structure
+
+```
+powershell-dev-toolkit/
+├── README.md              # Main documentation
+├── config.example.json    # Configuration template
+├── Setup-Environment.ps1  # Setup script
+├── Get-ScriptConfig.ps1   # Config loader
+├── Connect-SSH.ps1        # SSH scripts
+├── Connect-SSHTunnel.ps1
+├── Get-*.ps1              # Get/retrieve commands
+├── Invoke-*.ps1           # Action commands
+├── Start-*.ps1            # Start/launch commands
+├── Watch-*.ps1            # Monitor commands
+├── New-*.ps1              # Create/generate commands
+└── creds/                 # Credentials (gitignored)
+```
+
+## Commit Messages
+
+Use clear and meaningful commit messages:
+
+- **feat**: New feature
+- **fix**: Bug fix
+- **docs**: Documentation changes
+- **style**: Code style changes (formatting)
+- **refactor**: Code refactoring
+- **test**: Adding tests
+- **chore**: Maintenance tasks
+
+Examples:
+```
+feat: add support for SQLServer tunneling
+fix: resolve credential loading on PowerShell 7
+docs: update SSH setup instructions
+refactor: simplify server configuration logic
+```
+
+## Questions?
+
+Feel free to open an issue with the `question` label if you need clarification on anything.
+
+## Code of Conduct
+
+Be respectful and constructive. We're all here to learn and help each other.
+
+---
+
+Thank you for contributing! 🚀

@@ -1,0 +1,34 @@
+{
+  "ssh": {
+    "credentialFile": "ssh-credentials.xml",
+    "servers": {
+      "server1": {
+        "hostname": "server1.example.com",
+        "description": "Production server"
+      },
+      "server2": {
+        "hostname": "server2.example.com",
+        "description": "Development server"
+      },
+      "db-server": {
+        "hostname": "db.example.com",
+        "description": "Database server"
+      }
+    },
+    "databasePorts": {
+      "postgres": 5432,
+      "postgresql": 5432,
+      "mysql": 3306,
+      "mariadb": 3306,
+      "mssql": 1433,
+      "sqlserver": 1433,
+      "mongodb": 27017,
+      "mongo": 27017,
+      "redis": 6379,
+      "oracle": 1521
+    }
+  },
+  "editor": {
+    "notepadPlusPlus": "C:\\Program Files\\Notepad++\\notepad++.exe"
+  }
+}

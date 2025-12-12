@@ -1,0 +1,38 @@
+# Credential files
+creds/
+*.cred.xml
+*-cred.xml
+
+# Configuration (contains user-specific settings)
+config.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets and passwords
+secrets/
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+
+# PowerShell credential exports
+*.clixml
+
+# Profile backups
+*PROFILE_BACKUP*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
