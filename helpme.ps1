@@ -55,6 +55,7 @@ if (-not $ScriptsOnly) {
     Write-Cmd "Connect-SSHTunnel <server> [RemotePort] [LocalPort] [-RemoteHost]" "Create SSH tunnel (Aliases: tunnel, tssh)"
     Write-Option "  Ex: tunnel myserver | tunnel myserver 3306 | tunnel myserver postgres 5433"
     Write-Option "  DB shortcuts: postgres, mysql, mssql, mongodb, redis, oracle"
+    Write-Option "  Supports key files (.pem) - add keyFile to server config"
     Write-Option "  Configure servers in config.json (copy from config.example.json)"
 
     Write-Header "AI INTEGRATION COMMANDS"

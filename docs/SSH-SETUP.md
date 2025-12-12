@@ -44,6 +44,11 @@ Edit `config.json` with your server details:
         "hostname": "staging.example.com",
         "description": "Staging server"
       },
+      "aws": {
+        "hostname": "ec2-xxx.amazonaws.com",
+        "description": "AWS EC2 instance",
+        "keyFile": "aws-key.pem"
+      },
       "db": {
         "hostname": "database.example.com",
         "description": "Database server"
@@ -94,7 +99,8 @@ Each server entry in `config.json`:
 "servers": {
   "alias": {
     "hostname": "server.example.com",
-    "description": "Optional description"
+    "description": "Optional description",
+    "keyFile": "optional-key.pem"
   }
 }
 ```
@@ -104,6 +110,7 @@ Each server entry in `config.json`:
 | `alias` | Yes | Short name for the server (used in commands) |
 | `hostname` | Yes | Full hostname or IP address |
 | `description` | No | Human-readable description |
+| `keyFile` | No | SSH key file name (.pem) in `creds` directory |
 
 ### Database Port Shortcuts
 
@@ -255,9 +262,54 @@ wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
 
 ---
 
-## SSH Keys (Alternative)
+## SSH Key Files (.pem)
 
-For key-based authentication instead of passwords:
+For key-based authentication (common with AWS, cloud providers):
+
+### 1. Place Key File in Creds Directory
+
+```powershell
+# Copy your .pem file to the creds directory
+Copy-Item 'C:\Downloads\my-server-key.pem' '.\creds\my-server-key.pem'
+```
+
+### 2. Configure Server with Key File
+
+Add `keyFile` to your server config:
+
+```json
+"servers": {
+  "aws-prod": {
+    "hostname": "ec2-xxx.compute.amazonaws.com",
+    "description": "AWS Production",
+    "keyFile": "my-server-key.pem"
+  }
+}
+```
+
+### 3. Create Credential File for Username
+
+Key file auth still needs a username (stored in credential file):
+
+```powershell
+$cred = Get-Credential -UserName 'ec2-user'
+$cred | Export-Clixml '.\creds\ssh-credentials.xml'
+```
+
+> **Tip:** Password field can be anything when using key files - only username is used.
+
+### 4. Connect Using Key File
+
+```powershell
+cssh aws-prod                    # Uses key file automatically
+tunnel aws-prod postgres         # Tunnels also support key files
+```
+
+---
+
+## SSH Keys (Generate New)
+
+To generate and install new SSH keys:
 
 ### 1. Generate SSH Key
 
@@ -271,15 +323,14 @@ wsl bash -c "ssh-keygen -t ed25519 -C 'your_email@example.com'"
 wsl bash -c "ssh-copy-id username@server.example.com"
 ```
 
-### 3. Connect Without Password
-
-After setting up keys, you can connect directly:
+### 3. Export Private Key for Toolkit
 
 ```powershell
-wsl ssh username@server.example.com
+# Copy private key to creds directory
+wsl bash -c "cat ~/.ssh/id_ed25519" | Set-Content '.\creds\my-key.pem'
 ```
 
-> **Note:** The toolkit's credential-based commands still work alongside key-based auth.
+Then configure `keyFile` in your server config as shown above.
 
 ---
 
@@ -294,11 +345,13 @@ wsl ssh username@server.example.com
 
 2. **Use strong, unique passwords** for SSH
 
-3. **Consider SSH keys** for production servers
+3. **Use SSH key files** for production servers (more secure than passwords)
 
-4. **Limit server access** - only configure servers you need
+4. **Protect key files** - ensure `.pem` files have restricted permissions
 
-5. **Rotate credentials** periodically
+5. **Limit server access** - only configure servers you need
+
+6. **Rotate credentials** periodically
 
 ---
 
@@ -308,8 +361,10 @@ The toolkit uses different methods based on availability:
 
 | Priority | Method | Requirements |
 |----------|--------|--------------|
-| 1 | WSL + sshpass | WSL installed |
-| 2 | Posh-SSH | Posh-SSH module installed |
+| 1 | WSL + key file | WSL installed, keyFile configured |
+| 2 | WSL + sshpass | WSL installed, password auth |
+| 3 | Posh-SSH + key file | Posh-SSH module, keyFile configured |
+| 4 | Posh-SSH + password | Posh-SSH module installed |
 
 ### Check Available Methods
 

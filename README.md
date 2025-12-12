@@ -6,17 +6,17 @@
 [![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)](https://docs.microsoft.com/powershell/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## ✨ Features
+## Features
 
-- **🔐 SSH Management** - Easy SSH connections and database tunneling with credential management
-- **🛠️ Development Tools** - Auto-detecting dev servers, port management, project detection
-- **🔍 Code Search** - Fast project-wide search with smart filtering
-- **📊 Git Integration** - Enhanced git status and branch information
-- **🤖 AI Assistant Integration** - Generate AI rules files for Cursor IDE, Claude, and other AI coding assistants
-- **📝 Log Monitoring** - Real-time log file watching with filtering
-- **🚀 Quick Commands** - 30+ productivity commands with short aliases
+- **SSH Management** - Easy SSH connections and database tunneling with credential management
+- **Development Tools** - Auto-detecting dev servers, port management, project detection
+- **Code Search** - Fast project-wide search with smart filtering
+- **Git Integration** - Enhanced git status and branch information
+- **AI Assistant Integration** - Generate AI rules files for Cursor IDE, Claude, and other AI coding assistants
+- **Log Monitoring** - Real-time log file watching with filtering
+- **Quick Commands** - 30+ productivity commands with short aliases
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -57,7 +57,7 @@
    helpme  # Show all commands
    ```
 
-## 📋 Requirements
+## Requirements
 
 ### Essential
 - **Windows 10/11**
@@ -77,7 +77,7 @@
 - **Python** - For Python projects - [Download](https://www.python.org/downloads/)
 - **Composer** - For PHP dependency management - [Download](https://getcomposer.org/)
 
-## 🎯 Key Commands
+## Key Commands
 
 ### SSH & Remote Access
 ```powershell
@@ -120,11 +120,11 @@ rc                               # Browse command history
 rc -Interactive                  # Interactive history browser
 ```
 
-## 📖 Full Command Reference
+## Full Command Reference
 
 Run `helpme` to see all commands, or check the [complete documentation](docs/COMMANDS.md).
 
-## ⚙️ Configuration
+## Configuration
 
 ### SSH Setup
 
@@ -137,19 +137,34 @@ Run `helpme` to see all commands, or check the [complete documentation](docs/COM
          "myserver": {
            "hostname": "server.example.com",
            "description": "Production server"
+         },
+         "aws-server": {
+           "hostname": "ec2-xxx.amazonaws.com",
+           "description": "AWS EC2 instance",
+           "keyFile": "aws-key.pem"
          }
        }
      }
    }
    ```
 
-2. **Store SSH credentials:**
+2. **Store SSH credentials (password auth):**
    ```powershell
    # Create creds directory
    New-Item -Path ".\creds" -ItemType Directory -Force
    
    # Store encrypted credentials
    $cred = Get-Credential -UserName 'your-ssh-username'
+   $cred | Export-Clixml '.\creds\ssh-credentials.xml'
+   ```
+
+3. **Or use key file authentication (.pem):**
+   ```powershell
+   # Copy your key file to creds directory
+   Copy-Item 'C:\path\to\your-key.pem' '.\creds\your-key.pem'
+   
+   # Still need credential file for username
+   $cred = Get-Credential -UserName 'ec2-user'
    $cred | Export-Clixml '.\creds\ssh-credentials.xml'
    ```
 
@@ -164,7 +179,7 @@ Configure your preferred editor in `config.json`:
 }
 ```
 
-## 🔧 Customization
+## Customization
 
 ### Adding Custom Commands
 
@@ -184,18 +199,25 @@ Edit `config.json` to add more servers:
   "staging": {
     "hostname": "staging.example.com", 
     "description": "Staging"
+  },
+  "aws": {
+    "hostname": "ec2-xxx.amazonaws.com",
+    "description": "AWS EC2",
+    "keyFile": "aws-key.pem"
   }
 }
 ```
 
-## 📚 Documentation
+> **Note:** For key file auth, place `.pem` files in `.\creds\` and set `keyFile` in config.
+
+## Documentation
 
 - [Complete Command Reference](docs/COMMANDS.md)
 - [SSH Configuration Guide](docs/SSH-SETUP.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Contributing Guidelines](CONTRIBUTING.md)
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes:
 
@@ -205,7 +227,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Scripts won't execute
 ```powershell
@@ -226,23 +248,23 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .\Setup-Environment.ps1 -UpdateProfile
 ```
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- Built for developers who love PowerShell
+- Built for developers who love PowerShell or Have no choice but to use it
 - Inspired by Unix productivity tools
 - Optimized for Windows 10/11 development environments
 
-## 📧 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/joshuaevan/powershell-dev-toolkit/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/joshuaevan/powershell-dev-toolkit/discussions)
 
 ---
 
-**Made with ❤️ for Windows developers**
+**Made for Windows developers**
 
-*Star ⭐ this repo if you find it helpful!*
+*Star this repo if you find it helpful!*

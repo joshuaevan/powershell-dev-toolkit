@@ -8,7 +8,8 @@
       },
       "server2": {
         "hostname": "server2.example.com",
-        "description": "Development server"
+        "description": "Development server",
+        "keyFile": "server2.pem"
       },
       "db-server": {
         "hostname": "db.example.com",
