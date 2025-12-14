@@ -16,31 +16,45 @@ if (-not $config) {
 # Get servers from config
 $servers = @{}
 $serverKeyFiles = @{}
+$serverUsers = @{}
 if ($config.ssh.servers) {
     foreach ($key in $config.ssh.servers.PSObject.Properties.Name) {
         $servers[$key] = $config.ssh.servers.$key.hostname
         if ($config.ssh.servers.$key.keyFile) {
             $serverKeyFiles[$key] = $config.ssh.servers.$key.keyFile
         }
+        if ($config.ssh.servers.$key.user) {
+            $serverUsers[$key] = $config.ssh.servers.$key.user
+        }
     }
 }
 
-# Resolve hostname and key file
+# Resolve hostname, key file, and user
 $keyFile = $null
+$configUser = $null
 if ($servers.ContainsKey($Target)) {
     $Server = $servers[$Target]
     if ($serverKeyFiles.ContainsKey($Target)) {
         $keyFile = $serverKeyFiles[$Target]
+    }
+    if ($serverUsers.ContainsKey($Target)) {
+        $configUser = $serverUsers[$Target]
     }
 } else {
     $Server = $Target
 }
 
 # Try Posh-SSH first if WSL not available
-$useWSL = $true
+$useWSL = $false
 $wsl = Get-Command wsl -ErrorAction SilentlyContinue
-if (-not $wsl) {
-    $useWSL = $false
+if ($wsl) {
+    # Check if WSL has a distribution installed
+    $wslCheck = wsl echo "ok" 2>&1
+    if ($wslCheck -eq "ok") {
+        $useWSL = $true
+    }
+}
+if (-not $useWSL) {
     # Use Posh-SSH
     try {
         Import-Module Posh-SSH -ErrorAction Stop
@@ -58,7 +72,12 @@ $credsDir = Join-Path $scriptDir "creds"
 # Check for key file authentication
 $keyFilePath = $null
 if ($keyFile) {
-    $keyFilePath = Join-Path $credsDir $keyFile
+    # Support both absolute paths and relative paths (in creds directory)
+    if ([System.IO.Path]::IsPathRooted($keyFile)) {
+        $keyFilePath = $keyFile
+    } else {
+        $keyFilePath = Join-Path $credsDir $keyFile
+    }
     if (-not (Test-Path $keyFilePath)) {
         Write-Host ""
         Write-Host "Key file not found: $keyFilePath" -ForegroundColor Yellow
@@ -106,19 +125,23 @@ if (-not $keyFile) {
     $password = $cred.GetNetworkCredential().Password
 } else {
     # For key file auth, we need a username from config or credential file
-    $credFile = $config.ssh.credentialFile
-    if ($credFile) {
-        $credPath = Join-Path $credsDir $credFile
-        if (Test-Path $credPath) {
-            $cred = Import-Clixml $credPath
-            $username = $cred.UserName
+    if ($configUser) {
+        $username = $configUser
+    } else {
+        $credFile = $config.ssh.credentialFile
+        if ($credFile) {
+            $credPath = Join-Path $credsDir $credFile
+            if (Test-Path $credPath) {
+                $cred = Import-Clixml $credPath
+                $username = $cred.UserName
+            }
         }
     }
     
     if (-not $username) {
         Write-Host ""
         Write-Host "Username required for key file authentication." -ForegroundColor Yellow
-        Write-Host "Create a credential file with just the username:" -ForegroundColor Cyan
+        Write-Host "Add 'user' to server config or create a credential file:" -ForegroundColor Cyan
         Write-Host "     `$cred = Get-Credential -UserName 'your-ssh-username'" -ForegroundColor Gray
         Write-Host "     `$cred | Export-Clixml '.\creds\ssh-credentials.xml'" -ForegroundColor Gray
         Write-Host ""
@@ -130,9 +153,11 @@ if (-not $keyFile) {
 if ($useWSL) {
     if ($keyFile) {
         # Convert Windows path to WSL path for key file
-        $wslKeyPath = wsl wslpath -u "'$keyFilePath'"
+        $escapedPath = $keyFilePath -replace '\\', '/'
+        $wslKeyPath = (wsl wslpath -u "'$escapedPath'").Trim()
         Write-Host "Connecting to $Server as $username (using key file)..." -ForegroundColor Cyan
-        wsl bash -c "ssh -o StrictHostKeyChecking=no -i $wslKeyPath $username@$Server"
+        Write-Host "Key: $wslKeyPath" -ForegroundColor Gray
+        wsl bash -c "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '$wslKeyPath' $username@$Server"
     } else {
         # Check if sshpass is installed
         $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"

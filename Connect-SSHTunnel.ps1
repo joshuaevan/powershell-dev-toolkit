@@ -25,11 +25,15 @@ if (-not $config) {
 # Get servers from config
 $servers = @{}
 $serverKeyFiles = @{}
+$serverUsers = @{}
 if ($config.ssh.servers) {
     foreach ($key in $config.ssh.servers.PSObject.Properties.Name) {
         $servers[$key] = $config.ssh.servers.$key.hostname
         if ($config.ssh.servers.$key.keyFile) {
             $serverKeyFiles[$key] = $config.ssh.servers.$key.keyFile
+        }
+        if ($config.ssh.servers.$key.user) {
+            $serverUsers[$key] = $config.ssh.servers.$key.user
         }
     }
 }
@@ -64,12 +68,16 @@ if ($LocalPort -eq 0) {
     $LocalPort = $RemotePort
 }
 
-# Resolve hostname and key file
+# Resolve hostname, key file, and user
 $keyFile = $null
+$configUser = $null
 if ($servers.ContainsKey($Target)) {
     $Server = $servers[$Target]
     if ($serverKeyFiles.ContainsKey($Target)) {
         $keyFile = $serverKeyFiles[$Target]
+    }
+    if ($serverUsers.ContainsKey($Target)) {
+        $configUser = $serverUsers[$Target]
     }
 } else {
     $Server = $Target
@@ -81,7 +89,12 @@ $credsDir = Join-Path $scriptDir "creds"
 # Check for key file authentication
 $keyFilePath = $null
 if ($keyFile) {
-    $keyFilePath = Join-Path $credsDir $keyFile
+    # Support both absolute paths and relative paths (in creds directory)
+    if ([System.IO.Path]::IsPathRooted($keyFile)) {
+        $keyFilePath = $keyFile
+    } else {
+        $keyFilePath = Join-Path $credsDir $keyFile
+    }
     if (-not (Test-Path $keyFilePath)) {
         Write-Host ""
         Write-Host "Key file not found: $keyFilePath" -ForegroundColor Yellow
@@ -129,19 +142,23 @@ if (-not $keyFile) {
     $password = $cred.GetNetworkCredential().Password
 } else {
     # For key file auth, we need a username from config or credential file
-    $credFile = $config.ssh.credentialFile
-    if ($credFile) {
-        $credPath = Join-Path $credsDir $credFile
-        if (Test-Path $credPath) {
-            $cred = Import-Clixml $credPath
-            $username = $cred.UserName
+    if ($configUser) {
+        $username = $configUser
+    } else {
+        $credFile = $config.ssh.credentialFile
+        if ($credFile) {
+            $credPath = Join-Path $credsDir $credFile
+            if (Test-Path $credPath) {
+                $cred = Import-Clixml $credPath
+                $username = $cred.UserName
+            }
         }
     }
     
     if (-not $username) {
         Write-Host ""
         Write-Host "Username required for key file authentication." -ForegroundColor Yellow
-        Write-Host "Create a credential file with just the username:" -ForegroundColor Cyan
+        Write-Host "Add 'user' to server config or create a credential file:" -ForegroundColor Cyan
         Write-Host "     `$cred = Get-Credential -UserName 'your-ssh-username'" -ForegroundColor Gray
         Write-Host "     `$cred | Export-Clixml '.\creds\ssh-credentials.xml'" -ForegroundColor Gray
         Write-Host ""
@@ -157,13 +174,23 @@ Write-Host "Press Ctrl+C to close the tunnel" -ForegroundColor Yellow
 Write-Host ""
 
 # Use WSL with sshpass for the tunnel
+$useWSL = $false
 $wsl = Get-Command wsl -ErrorAction SilentlyContinue
 if ($wsl) {
+    # Check if WSL has a distribution installed
+    $wslCheck = wsl echo "ok" 2>&1
+    if ($wslCheck -eq "ok") {
+        $useWSL = $true
+    }
+}
+if ($useWSL) {
     if ($keyFile) {
         # Convert Windows path to WSL path for key file
-        $wslKeyPath = wsl wslpath -u "'$keyFilePath'"
+        $escapedPath = $keyFilePath -replace '\\', '/'
+        $wslKeyPath = (wsl wslpath -u "'$escapedPath'").Trim()
+        Write-Host "Key: $wslKeyPath" -ForegroundColor Gray
         # Create SSH tunnel using key file through WSL
-        wsl bash -c "ssh -o StrictHostKeyChecking=no -i $wslKeyPath -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
+        wsl bash -c "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '$wslKeyPath' -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
     } else {
         # Check if sshpass is installed
         $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
@@ -176,27 +203,48 @@ if ($wsl) {
         wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
     }
 } else {
-    # Fallback to Posh-SSH
-    try {
-        Import-Module Posh-SSH -ErrorAction Stop
+    # Try native Windows SSH first (available in Windows 10/11)
+    $nativeSsh = Get-Command ssh.exe -ErrorAction SilentlyContinue
+    if ($nativeSsh) {
+        Write-Host "Using native Windows SSH..." -ForegroundColor Gray
+        $sshArgs = @(
+            "-o", "StrictHostKeyChecking=no",
+            "-o", "IdentitiesOnly=yes",
+            "-N",
+            "-L", "${LocalPort}:${RemoteHost}:${RemotePort}"
+        )
         if ($keyFile) {
-            $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
-        } else {
-            $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
+            $sshArgs += @("-i", $keyFilePath)
         }
+        $sshArgs += "$username@$Server"
         
-        Write-Host "Tunnel established. Keep this window open." -ForegroundColor Green
-        Write-Host "Press Ctrl+C to close..." -ForegroundColor Yellow
-        
-        # Keep tunnel open
-        Start-Sleep -Seconds 999999
-        
-    } catch {
-        Write-Host "Tunnel setup failed: $($_.Exception.Message)" -ForegroundColor Red
-        exit 1
-    } finally {
-        if ($session) {
-            Remove-SSHSession -SessionId $session.SessionId | Out-Null
+        & ssh.exe @sshArgs
+    } else {
+        # Fallback to Posh-SSH
+        try {
+            Import-Module Posh-SSH -ErrorAction Stop
+            if ($keyFile) {
+                $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
+            } else {
+                $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
+            }
+            
+            # Set up port forwarding
+            $tunnel = New-SSHLocalPortForward -SSHSession $session -BoundHost "127.0.0.1" -BoundPort $LocalPort -RemoteAddress $RemoteHost -RemotePort $RemotePort
+            
+            Write-Host "Tunnel established. Keep this window open." -ForegroundColor Green
+            Write-Host "Press Ctrl+C to close..." -ForegroundColor Yellow
+            
+            # Keep tunnel open
+            Start-Sleep -Seconds 999999
+            
+        } catch {
+            Write-Host "Tunnel setup failed: $($_.Exception.Message)" -ForegroundColor Red
+            exit 1
+        } finally {
+            if ($session) {
+                Remove-SSHSession -SessionId $session.SessionId | Out-Null
+            }
         }
     }
 }
