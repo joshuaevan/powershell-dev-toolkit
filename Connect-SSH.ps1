@@ -79,13 +79,7 @@ if ($keyFile) {
         $keyFilePath = Join-Path $credsDir $keyFile
     }
     if (-not (Test-Path $keyFilePath)) {
-        Write-Host ""
-        Write-Host "Key file not found: $keyFilePath" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "To set up SSH key authentication:" -ForegroundColor Cyan
-        Write-Host "  1. Place your key file (.pem) in the creds directory:" -ForegroundColor White
-        Write-Host "     Copy-Item 'C:\path\to\your-key.pem' '$keyFilePath'" -ForegroundColor Gray
-        Write-Host ""
+        Write-Host "Key file not found: $keyFilePath" -ForegroundColor Red
         exit 1
     }
 }
@@ -103,20 +97,7 @@ if (-not $keyFile) {
     $credPath = Join-Path $credsDir $credFile
 
     if (-not (Test-Path $credPath)) {
-        Write-Host ""
-        Write-Host "Credential file not found!" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "To set up SSH credentials:" -ForegroundColor Cyan
-        Write-Host "  1. Create credentials directory if needed:" -ForegroundColor White
-        Write-Host "     New-Item -Path '$credsDir' -ItemType Directory -Force" -ForegroundColor Gray
-        Write-Host ""
-        Write-Host "  2. Store your credentials:" -ForegroundColor White
-        Write-Host "     `$cred = Get-Credential -UserName 'your-ssh-username'" -ForegroundColor Gray
-        Write-Host "     `$cred | Export-Clixml '$credPath'" -ForegroundColor Gray
-        Write-Host ""
-        Write-Host "  Or configure a key file in config.json:" -ForegroundColor Cyan
-        Write-Host '     "keyFile": "your-key.pem"' -ForegroundColor Gray
-        Write-Host ""
+        Write-Host "Credential file not found: $credPath" -ForegroundColor Red
         exit 1
     }
 
@@ -139,38 +120,30 @@ if (-not $keyFile) {
     }
     
     if (-not $username) {
-        Write-Host ""
-        Write-Host "Username required for key file authentication." -ForegroundColor Yellow
-        Write-Host "Add 'user' to server config or create a credential file:" -ForegroundColor Cyan
-        Write-Host "     `$cred = Get-Credential -UserName 'your-ssh-username'" -ForegroundColor Gray
-        Write-Host "     `$cred | Export-Clixml '.\creds\ssh-credentials.xml'" -ForegroundColor Gray
-        Write-Host ""
+        Write-Host "Username required. Add 'user' to server config in config.json" -ForegroundColor Red
         exit 1
     }
 }
 
-# Use WSL with sshpass for proper terminal handling
-if ($useWSL) {
-    if ($keyFile) {
-        # Convert Windows path to WSL path for key file
+# Use Windows native SSH for key-based auth (avoids WSL permission issues with /mnt/c paths)
+if ($keyFile) {
+    $winSsh = Get-Command ssh.exe -ErrorAction SilentlyContinue
+    if ($winSsh) {
+        Write-Host "Connecting to $Server as $username..." -ForegroundColor Cyan
+        & ssh.exe -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $keyFilePath "$username@$Server"
+    } elseif ($useWSL) {
+        Write-Host "Connecting to $Server as $username (via WSL)..." -ForegroundColor Cyan
         $escapedPath = $keyFilePath -replace '\\', '/'
         $wslKeyPath = (wsl wslpath -u "'$escapedPath'").Trim()
-        Write-Host "Connecting to $Server as $username (using key file)..." -ForegroundColor Cyan
-        Write-Host "Key: $wslKeyPath" -ForegroundColor Gray
         wsl bash -c "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '$wslKeyPath' $username@$Server"
-    } else {
-        # Check if sshpass is installed
-        $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
-        if ($hasSshpass -match 'no') {
-            Write-Host "Installing sshpass in WSL (one-time setup)..." -ForegroundColor Yellow
-            wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
-        }
-        
-        # Connect using sshpass through WSL (proper terminal handling)
-        wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no $username@$Server"
     }
+} elseif ($useWSL) {
+    $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
+    if ($hasSshpass -match 'no') {
+        wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
+    }
+    wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no $username@$Server"
 } else {
-    # Fallback to Posh-SSH
     Write-Host "Connecting to $Server as $username..." -ForegroundColor Cyan
     try {
         if ($keyFile) {
