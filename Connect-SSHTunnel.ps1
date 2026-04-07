@@ -150,30 +150,52 @@ else {
 
 Write-Host "Tunnel: localhost:$LocalPort -> ${RemoteHost}:${RemotePort} (via $Server)" -ForegroundColor Cyan
 
-# Use WSL with sshpass for the tunnel
+# Detect available SSH backends
 $useWSL = $false
 $wsl = Get-Command wsl -ErrorAction SilentlyContinue
 if ($wsl) {
-    # Check if WSL has a distribution installed
     $wslCheck = wsl echo "ok" 2>&1
     if ($wslCheck -eq "ok") {
         $useWSL = $true
     }
 }
-if ($useWSL) {
-    if ($keyFile) {
+
+# Use Windows native SSH for key-based auth (avoids WSL permission issues with /mnt/c paths)
+if ($keyFile) {
+    $winSsh = Get-Command ssh.exe -ErrorAction SilentlyContinue
+    if ($winSsh) {
+        & ssh.exe -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $keyFilePath -N -L "${LocalPort}:${RemoteHost}:${RemotePort}" "$username@$Server"
+    }
+    elseif ($useWSL) {
         $escapedPath = $keyFilePath -replace '\\', '/'
         $wslKeyPath = (wsl wslpath -u "'$escapedPath'").Trim()
         wsl bash -c "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '$wslKeyPath' -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
     }
     else {
-        $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
-        if ($hasSshpass -match 'no') {
-            Write-Host "Installing sshpass in WSL..." -ForegroundColor Yellow
-            wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
+        try {
+            Import-Module Posh-SSH -ErrorAction Stop
+            $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
+            New-SSHLocalPortForward -SSHSession $session -BoundHost "127.0.0.1" -BoundPort $LocalPort -RemoteAddress $RemoteHost -RemotePort $RemotePort | Out-Null
+            Start-Sleep -Seconds 999999
         }
-        wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
+        catch {
+            Write-Host "Tunnel setup failed: $($_.Exception.Message)" -ForegroundColor Red
+            exit 1
+        }
+        finally {
+            if ($session) {
+                Remove-SSHSession -SessionId $session.SessionId | Out-Null
+            }
+        }
     }
+}
+elseif ($useWSL) {
+    $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
+    if ($hasSshpass -match 'no') {
+        Write-Host "Installing sshpass in WSL..." -ForegroundColor Yellow
+        wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
+    }
+    wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"
 }
 else {
     $nativeSsh = Get-Command ssh.exe -ErrorAction SilentlyContinue
@@ -182,29 +204,17 @@ else {
             "-o", "StrictHostKeyChecking=no",
             "-o", "IdentitiesOnly=yes",
             "-N",
-            "-L", "${LocalPort}:${RemoteHost}:${RemotePort}"
+            "-L", "${LocalPort}:${RemoteHost}:${RemotePort}",
+            "$username@$Server"
         )
-        if ($keyFile) {
-            $sshArgs += @("-i", $keyFilePath)
-        }
-        $sshArgs += "$username@$Server"
-        
         & ssh.exe @sshArgs
     }
     else {
-        # Fallback to Posh-SSH
         try {
             Import-Module Posh-SSH -ErrorAction Stop
-            if ($keyFile) {
-                $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
-            }
-            else {
-                $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
-            }
-            
-            $tunnel = New-SSHLocalPortForward -SSHSession $session -BoundHost "127.0.0.1" -BoundPort $LocalPort -RemoteAddress $RemoteHost -RemotePort $RemotePort
+            $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
+            New-SSHLocalPortForward -SSHSession $session -BoundHost "127.0.0.1" -BoundPort $LocalPort -RemoteAddress $RemoteHost -RemotePort $RemotePort | Out-Null
             Start-Sleep -Seconds 999999
-            
         }
         catch {
             Write-Host "Tunnel setup failed: $($_.Exception.Message)" -ForegroundColor Red
