@@ -169,6 +169,7 @@ if ($useWSL) {
     else {
         $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
         if ($hasSshpass -match 'no') {
+            Write-Host "Installing sshpass in WSL..." -ForegroundColor Yellow
             wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
         }
         wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no -N -L ${LocalPort}:${RemoteHost}:${RemotePort} $username@$Server"

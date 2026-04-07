@@ -40,7 +40,8 @@ if ($servers.ContainsKey($Target)) {
     if ($serverUsers.ContainsKey($Target)) {
         $configUser = $serverUsers[$Target]
     }
-} else {
+}
+else {
     $Server = $Target
 }
 
@@ -58,7 +59,8 @@ if (-not $useWSL) {
     # Use Posh-SSH
     try {
         Import-Module Posh-SSH -ErrorAction Stop
-    } catch {
+    }
+    catch {
         Write-Host "Neither WSL nor Posh-SSH is available." -ForegroundColor Red
         Write-Host "Install WSL: wsl --install" -ForegroundColor Yellow
         Write-Host "Or install Posh-SSH: Install-Module -Name Posh-SSH" -ForegroundColor Yellow
@@ -75,7 +77,8 @@ if ($keyFile) {
     # Support both absolute paths and relative paths (in creds directory)
     if ([System.IO.Path]::IsPathRooted($keyFile)) {
         $keyFilePath = $keyFile
-    } else {
+    }
+    else {
         $keyFilePath = Join-Path $credsDir $keyFile
     }
     if (-not (Test-Path $keyFilePath)) {
@@ -104,11 +107,13 @@ if (-not $keyFile) {
     $cred = Import-Clixml $credPath
     $username = $cred.UserName
     $password = $cred.GetNetworkCredential().Password
-} else {
+}
+else {
     # For key file auth, we need a username from config or credential file
     if ($configUser) {
         $username = $configUser
-    } else {
+    }
+    else {
         $credFile = $config.ssh.credentialFile
         if ($credFile) {
             $credPath = Join-Path $credsDir $credFile
@@ -131,29 +136,44 @@ if ($keyFile) {
     if ($winSsh) {
         Write-Host "Connecting to $Server as $username..." -ForegroundColor Cyan
         & ssh.exe -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $keyFilePath "$username@$Server"
-    } elseif ($useWSL) {
+    }
+    elseif ($useWSL) {
         Write-Host "Connecting to $Server as $username (via WSL)..." -ForegroundColor Cyan
         $escapedPath = $keyFilePath -replace '\\', '/'
         $wslKeyPath = (wsl wslpath -u "'$escapedPath'").Trim()
         wsl bash -c "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i '$wslKeyPath' $username@$Server"
     }
-} elseif ($useWSL) {
+    else {
+        Write-Host "Connecting to $Server as $username..." -ForegroundColor Cyan
+        try {
+            Import-Module Posh-SSH -ErrorAction Stop
+            $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
+            Invoke-SSHCommand -SessionId $session.SessionId -Command "bash -l" -TimeOut 3600
+            Remove-SSHSession -SessionId $session.SessionId | Out-Null
+        }
+        catch {
+            Write-Host "Connection failed: $($_.Exception.Message)" -ForegroundColor Red
+            exit 1
+        }
+    }
+}
+elseif ($useWSL) {
     $hasSshpass = wsl bash -c "command -v sshpass >/dev/null 2>&1 && echo 'yes' || echo 'no'"
     if ($hasSshpass -match 'no') {
+        Write-Host "Installing sshpass in WSL..." -ForegroundColor Yellow
         wsl bash -c "sudo apt-get update && sudo apt-get install -y sshpass"
     }
     wsl bash -c "SSHPASS='$password' sshpass -e ssh -o StrictHostKeyChecking=no $username@$Server"
-} else {
+}
+else {
     Write-Host "Connecting to $Server as $username..." -ForegroundColor Cyan
     try {
-        if ($keyFile) {
-            $session = New-SSHSession -ComputerName $Server -KeyFile $keyFilePath -AcceptKey
-        } else {
-            $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
-        }
+        Import-Module Posh-SSH -ErrorAction Stop
+        $session = New-SSHSession -ComputerName $Server -Credential $cred -AcceptKey
         Invoke-SSHCommand -SessionId $session.SessionId -Command "bash -l" -TimeOut 3600
         Remove-SSHSession -SessionId $session.SessionId | Out-Null
-    } catch {
+    }
+    catch {
         Write-Host "Connection failed: $($_.Exception.Message)" -ForegroundColor Red
         exit 1
     }
