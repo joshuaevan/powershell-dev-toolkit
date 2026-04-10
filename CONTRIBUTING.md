@@ -30,24 +30,24 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. **Fork the repository**
 2. **Create a new branch** from `main`:
-   ```powershell
+  ```powershell
    git checkout -b feature/your-feature-name
-   ```
+  ```
 3. **Make your changes**:
-   - Follow the existing code style
-   - Add comments for complex logic
-   - Update documentation if needed
+  - Follow the existing code style
+  - Add comments for complex logic
+  - Update documentation if needed
 4. **Test your changes**:
-   - Test on a clean Windows machine if possible
-   - Ensure backward compatibility
+  - Test on a clean Windows machine if possible
+  - Ensure backward compatibility
 5. **Commit your changes**:
-   ```powershell
+  ```powershell
    git commit -m "Add feature: your feature description"
-   ```
+  ```
 6. **Push to your fork**:
-   ```powershell
+  ```powershell
    git push origin feature/your-feature-name
-   ```
+  ```
 7. **Open a Pull Request** with a clear title and description
 
 ## Coding Standards
@@ -55,58 +55,53 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ### PowerShell Script Guidelines
 
 1. **Use meaningful variable names**
-   ```powershell
+  ```powershell
    # Good
    $serverHostname = "example.com"
-   
+
    # Bad
    $s = "example.com"
-   ```
-
+  ```
 2. **Include comment-based help** for all scripts
-   ```powershell
+  ```powershell
    <#
    .SYNOPSIS
        Brief description
-   
+
    .DESCRIPTION
        Detailed description
-   
+
    .PARAMETER Name
        Parameter description
-   
+
    .EXAMPLE
        script.ps1 -Name "test"
    #>
-   ```
-
+  ```
 3. **Use approved verbs** for function names
-   - Get-, Set-, New-, Remove-, Add-, etc.
-   - Check: `Get-Verb`
-
+  - Get-, Set-, New-, Remove-, Add-, etc.
+  - Check: `Get-Verb`
 4. **Handle errors gracefully**
-   ```powershell
+  ```powershell
    try {
        # Your code
    } catch {
        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
        exit 1
    }
-   ```
-
+  ```
 5. **Support common parameters** when appropriate
-   ```powershell
+  ```powershell
    [CmdletBinding()]
    param(
        [Parameter(Mandatory=$true)]
        [string]$Name
    )
-   ```
-
+  ```
 6. **Provide meaningful output**
-   - Use colored output for better UX
-   - Support `-AsJson` for programmatic use where appropriate
-   - Show progress for long-running operations
+  - Use colored output for better UX
+  - Support `-AsJson` for programmatic use where appropriate
+  - Show progress for long-running operations
 
 ### Configuration
 
@@ -194,6 +189,7 @@ Use clear and meaningful commit messages:
 - **chore**: Maintenance tasks
 
 Examples:
+
 ```
 feat: add support for SQLServer tunneling
 fix: resolve credential loading on PowerShell 7
