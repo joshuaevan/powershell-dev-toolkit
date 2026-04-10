@@ -159,7 +159,7 @@ $checkList = if ($Services -and $Services.Count -gt 0) {
 # Check each service
 $results = @()
 foreach ($key in $checkList) {
-    if (-not $serviceChecks.ContainsKey($key)) {
+    if (-not $serviceChecks.Contains($key)) {
         $results += [ordered]@{
             id = $key
             name = $key

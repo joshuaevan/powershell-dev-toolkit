@@ -105,8 +105,8 @@ $files = Get-ChildItem -Path $searchPath -Recurse -File -ErrorAction SilentlyCon
     # Include by type if specified
     if ($includePatterns.Count -gt 0) {
         $matched = $false
-        foreach ($pattern in $includePatterns) {
-            if ($_.Name -like $pattern) {
+        foreach ($incPattern in $includePatterns) {
+            if ($_.Name -like $incPattern) {
                 $matched = $true
                 break
             }

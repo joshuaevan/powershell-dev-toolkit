@@ -30,7 +30,7 @@ param(
 
     [int]$Port,
 
-    [string]$Host = 'localhost'
+    [string]$BindHost = 'localhost'
 )
 
 # Detect project type
@@ -101,7 +101,7 @@ if ($portInUse) {
 
 Write-Host ""
 Write-Host "Starting $Type dev server on " -NoNewline -ForegroundColor Cyan
-Write-Host "http://${Host}:${Port}" -ForegroundColor Yellow
+Write-Host "http://${BindHost}:${Port}" -ForegroundColor Yellow
 Write-Host "Press Ctrl+C to stop" -ForegroundColor DarkGray
 Write-Host ""
 
@@ -141,13 +141,13 @@ switch ($Type) {
         
         Write-Host "Document root: $docRoot" -ForegroundColor DarkGray
         Write-Host ""
-        php -S "${Host}:${Port}" -t $docRoot
+        php -S "${BindHost}:${Port}" -t $docRoot
     }
     
     'laravel' {
         Write-Host "Running: php artisan serve --port=$Port" -ForegroundColor DarkGray
         Write-Host ""
-        php artisan serve --host=$Host --port=$Port
+        php artisan serve --host=$BindHost --port=$Port
     }
     
     'python' {
@@ -155,7 +155,7 @@ switch ($Type) {
         if (Test-Path '.\manage.py') {
             Write-Host "Running: python manage.py runserver ${Port}" -ForegroundColor DarkGray
             Write-Host ""
-            python manage.py runserver "${Host}:${Port}"
+            python manage.py runserver "${BindHost}:${Port}"
         }
         # Flask
         elseif (Test-Path '.\app.py') {
@@ -163,19 +163,19 @@ switch ($Type) {
             Write-Host ""
             $env:FLASK_APP = 'app.py'
             $env:FLASK_ENV = 'development'
-            flask run --host=$Host --port=$Port
+            flask run --host=$BindHost --port=$Port
         }
         # FastAPI / Uvicorn
         elseif (Test-Path '.\main.py') {
             Write-Host "Running: uvicorn main:app --port $Port" -ForegroundColor DarkGray
             Write-Host ""
-            uvicorn main:app --host $Host --port $Port --reload
+            uvicorn main:app --host $BindHost --port $Port --reload
         }
         else {
             # Simple Python HTTP server
             Write-Host "Running: python -m http.server $Port" -ForegroundColor DarkGray
             Write-Host ""
-            python -m http.server $Port --bind $Host
+            python -m http.server $Port --bind $BindHost
         }
     }
 }
