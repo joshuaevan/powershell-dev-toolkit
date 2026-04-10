@@ -1,6 +1,6 @@
 @{
     RootModule        = 'PowerShellDevToolkit.psm1'
-    ModuleVersion     = '1.2.0'
+    ModuleVersion     = '1.1.0'
     GUID              = '882e07c2-69ad-46e6-aea6-07adb025f6b3'
     Author            = 'PowerShell Dev Toolkit Contributors'
     CompanyName       = 'Community'
