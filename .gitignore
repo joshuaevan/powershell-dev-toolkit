@@ -26,6 +26,9 @@ secrets/
 # Profile backups
 *PROFILE_BACKUP*
 
+# Toolkit update stamp
+.last-update-check
+
 # OS files
 .DS_Store
 Thumbs.db

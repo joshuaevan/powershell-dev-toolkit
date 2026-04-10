@@ -13,6 +13,7 @@
 | [SSH](#ssh-commands) | `cssh`, `tunnel`, `tssh` |
 | [AI Integration](#ai-integration-commands) | `ai-rules`, `context` |
 | [Development](#development-commands) | `port`, `proj`, `serve`, `gs`, `search`, `http`, `services`, `useenv`, `tail`, `clip`, `art` |
+| [Toolkit Management](#toolkit-management) | `Update-Toolkit` |
 
 ---
 
@@ -359,6 +360,35 @@ art tinker                        # Interactive REPL
 art route:list                    # List all routes
 art cache:clear                   # Clear application cache
 ```
+
+---
+
+## Toolkit Management
+
+### `Update-Toolkit`
+Self-update the toolkit by pulling the latest changes from git.
+
+```powershell
+Update-Toolkit                    # Pull latest, show changes, reload module
+Update-Toolkit -CheckOnly         # Check for updates without applying
+Update-Toolkit -Force             # Skip confirmation prompt
+```
+
+After updating, the module is re-imported automatically so new commands and aliases are available immediately.
+
+**Automatic Update Checks:**
+
+The toolkit checks for available updates once per day on shell startup (configurable). To change the frequency, set `toolkit.updateCheckDays` in `config.json`:
+
+```json
+{
+  "toolkit": {
+    "updateCheckDays": 7
+  }
+}
+```
+
+Set to `0` to disable automatic checks entirely.
 
 ---
 

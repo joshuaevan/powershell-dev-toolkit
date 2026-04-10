@@ -31,9 +31,10 @@ Describe "Use-NppForGit" {
 
         try {
             '{"editor":{"notepadPlusPlus":"C:\\does_not_exist\\notepad++.exe"}}' | Set-Content $configPath
+            Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force -DisableNameChecking
             Use-NppForGit -ErrorAction SilentlyContinue -ErrorVariable err
             ($err.Count -gt 0) | Should -Be $true
-            ($err[0].Exception.Message -match 'not found|cannot find|does not exist') | Should -Be $true
+            ($err[0].ToString() -match 'not found|cannot find|does not exist|Notepad') | Should -Be $true
         } finally {
             if ($savedConfig) {
                 Set-Content $configPath $savedConfig

@@ -52,8 +52,12 @@ New-Alias -Name grep      -Value Select-String        -Force -Scope Global
 New-Alias -Name ip        -Value Get-IPAddress        -Force -Scope Global
 New-Alias -Name Flush-DNS -Value Clear-DNSCache       -Force -Scope Global
 
+
 # la — list all including hidden (wraps Get-DirectoryListing -Force)
 function global:la { Get-DirectoryListing -Force @args }
 
 # o. — open current directory in Explorer
 function global:o. { Open-Item . }
+
+# Startup update check (runs once per configured interval, silent on error)
+try { Test-ToolkitUpdate } catch { }

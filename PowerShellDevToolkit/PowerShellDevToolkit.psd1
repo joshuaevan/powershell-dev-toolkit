@@ -47,6 +47,9 @@
         # Network commands
         'Get-IPAddress'
         'Clear-DNSCache'
+        # Toolkit management
+        'Update-Toolkit'
+        'Test-ToolkitUpdate'
     )
 
     CmdletsToExport   = @()

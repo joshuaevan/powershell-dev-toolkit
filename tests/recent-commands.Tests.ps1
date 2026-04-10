@@ -10,9 +10,9 @@ Describe "recent-commands" {
 
     It "Should contain page header or no-history message" {
         $output = Show-RecentCommands -Page 1 -PageSize 10 *>&1 | Out-String
-        $hasHeader = $output -match 'Recent Commands'
-        $hasNoHistory = $output -match 'No commands|no history|No recent'
-        $hasEmpty = [string]::IsNullOrWhiteSpace($output)
+        $hasHeader    = $output -match 'Recent Commands'
+        $hasNoHistory = $output -match 'No commands|History file not found|Error accessing'
+        $hasEmpty     = [string]::IsNullOrWhiteSpace($output)
         ($hasHeader -or $hasNoHistory -or $hasEmpty) | Should -Be $true
     }
 

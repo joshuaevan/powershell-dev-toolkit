@@ -128,6 +128,13 @@ function Show-Help {
         Write-Option "  art make:model User -m     # Create model with migration"
         Write-Option "  art tinker                 # Interactive REPL"
 
+        Write-Header "TOOLKIT MANAGEMENT"
+        Write-Cmd "Update-Toolkit" "Self-update the toolkit from git"
+        Write-Option "  Update-Toolkit              # Pull latest and reload"
+        Write-Option "  Update-Toolkit -CheckOnly   # Check without applying"
+        Write-Option "  Update-Toolkit -Force       # Skip confirmation prompt"
+        Write-Option "  Auto-checks on startup (set toolkit.updateCheckDays in config.json)"
+
         Write-Header "KEYBOARD SHORTCUTS"
         Write-Cmd "$([char]0x2191) / $([char]0x2193)" "Search history by prefix"
         Write-Cmd "Ctrl+R" "Reverse search history"
