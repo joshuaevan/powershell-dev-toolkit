@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Powershell-dev-toolkit-logo.png" alt="PowerShell Dev Toolkit">
+</p>
+
 # PowerShell Dev Toolkit for Windows
 
 > A comprehensive collection of PowerShell productivity scripts for Windows developers. Streamline your development workflow with SSH tunneling, project management, AI integration, and much more.

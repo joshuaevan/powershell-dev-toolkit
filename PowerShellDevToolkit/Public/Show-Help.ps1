@@ -23,6 +23,12 @@ function Show-Help {
     function Write-Cmd { param([string]$Cmd, [string]$Desc) Write-Host "  " -NoNewline; Write-Host $Cmd -ForegroundColor Yellow -NoNewline; Write-Host " - $Desc" }
     function Write-Option { param([string]$Text) Write-Host "    $Text" -ForegroundColor Gray }
 
+    $logoPath = Join-Path $script:ToolkitRoot "Powershell-dev-toolkit-logo.txt"
+    if (Test-Path $logoPath) {
+        Write-Host ""
+        Get-Content $logoPath | ForEach-Object { Write-Host $_ -ForegroundColor Cyan }
+    }
+
     if (-not $ScriptsOnly) {
         Write-Header "FILE & EDITOR COMMANDS"
         Write-Cmd "e [Path] [-Line N] [-Column N]" "Edit file/folder in Notepad++ (defaults to current dir)"

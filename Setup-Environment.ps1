@@ -70,9 +70,15 @@ $results = @{
 
 Clear-Host
 Write-Host ""
-Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  PowerShell Dev Toolkit - Environment Setup" -ForegroundColor Cyan
-Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
+Write-Host "  _____                       _____ _          _ _   _____               _______          _ _    _ _   " -ForegroundColor Cyan
+Write-Host " |  __ \                     / ____| |        | | | |  __ \             |__   __|        | | |  (_) |  " -ForegroundColor Cyan
+Write-Host " | |__) |____      _____ _ _| (___ | |__   ___| | | | |  | | _____   __   | | ___   ___ | | | ___| |_ " -ForegroundColor Cyan
+Write-Host " |  ___/ _ \ \ /\ / / _ \ '__\___ \| '_ \ / _ \ | | | |  | |/ _ \ \ / /   | |/ _ \ / _ \| | |/ / | __|" -ForegroundColor Cyan
+Write-Host " | |  | (_) \ V  V /  __/ |  ____) | | | |  __/ | | | |__| |  __/\ V /    | | (_) | (_) | |   <| | |_ " -ForegroundColor Cyan
+Write-Host " |_|   \___/ \_/\_/ \___|_| |_____/|_| |_|\___|_|_| |_____/ \___| \_/     |_|\___/ \___/|_|_|\_\_|\__|" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "  Environment Setup" -ForegroundColor Cyan
+Write-Host "  =================" -ForegroundColor Cyan
 Write-Host ""
 
 # Get script directory
