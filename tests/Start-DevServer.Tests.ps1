@@ -2,6 +2,21 @@ BeforeAll {
     $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
     $moduleDir = Join-Path $repoRoot "PowerShellDevToolkit"
     Import-Module $moduleDir -Force
+
+    $configPath = Join-Path $repoRoot "config.json"
+    $examplePath = Join-Path $repoRoot "config.example.json"
+    $script:hadConfig = Test-Path $configPath
+    if (-not $script:hadConfig -and (Test-Path $examplePath)) {
+        Copy-Item $examplePath $configPath
+        $script:createdConfig = $true
+    }
+}
+
+AfterAll {
+    if ($script:createdConfig) {
+        $configPath = Join-Path $repoRoot "config.json"
+        Remove-Item $configPath -ErrorAction SilentlyContinue
+    }
 }
 
 Describe "Start-DevServer" {
@@ -9,7 +24,7 @@ Describe "Start-DevServer" {
         $dir = Join-Path $env:TEMP "pester-serve-empty-$(Get-Random)"
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
-            $output = powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module '$moduleDir' -Force; Set-Location '$dir'; Start-DevServer 2>&1" | Out-String
+            $output = pwsh -NoProfile -Command "Import-Module '$moduleDir' -Force -DisableNameChecking; Set-Location '$dir'; Start-DevServer 2>&1" | Out-String
             ($output -match 'Could not detect') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
@@ -21,7 +36,7 @@ Describe "Start-DevServer" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             @{ scripts = @{ dev = "echo test" } } | ConvertTo-Json | Set-Content "$dir\package.json"
-            $output = powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module '$moduleDir' -Force; Set-Location '$dir'; Start-DevServer 2>&1" | Out-String
+            $output = pwsh -NoProfile -Command "Import-Module '$moduleDir' -Force -DisableNameChecking; Set-Location '$dir'; Start-DevServer 2>&1" | Out-String
             ($output -match 'node') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue

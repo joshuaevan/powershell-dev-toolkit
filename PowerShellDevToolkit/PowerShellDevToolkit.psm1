@@ -60,4 +60,4 @@ function global:la { Get-DirectoryListing -Force @args }
 function global:o. { Open-Item . }
 
 # Startup update check (runs once per configured interval, silent on error)
-try { Test-ToolkitUpdate } catch { }
+if ([Environment]::UserInteractive) { try { Test-ToolkitUpdate } catch { } }
