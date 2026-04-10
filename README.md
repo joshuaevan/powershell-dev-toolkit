@@ -22,38 +22,42 @@
 
 ## Quick Start
 
-### Installation
+### Option A: Install from PowerShell Gallery (recommended)
+
+```powershell
+# Install the module
+Install-Module PowerShellDevToolkit -Scope CurrentUser
+
+# Or using the newer PSResourceGet
+Install-PSResource PowerShellDevToolkit
+
+# Import it (add this line to your $PROFILE to load automatically)
+Import-Module PowerShellDevToolkit
+
+# Verify installation
+Get-Command -Module PowerShellDevToolkit
+helpme
+```
+
+### Option B: Install from source
 
 1. **Clone the repository**
   ```powershell
    git clone https://github.com/joshuaevan/powershell-dev-toolkit.git
    cd powershell-dev-toolkit
   ```
-2. **Import the module** (one-time setup)
+2. **Run the setup script**
   ```powershell
-   # Option A: Run the setup script (recommended)
    .\Setup-Environment.ps1
-
-   # Option B: Add to your profile manually
-   Add-Content $PROFILE 'Import-Module "C:\dev\powershell-dev-toolkit\PowerShellDevToolkit"'
   ```
 3. **Configure your settings**
   ```powershell
-   # Copy the example config
    Copy-Item config.example.json config.json
-
-   # Edit with your settings (servers, paths, etc.)
    notepad config.json
   ```
 4. **Reload your profile**
   ```powershell
    . $PROFILE
-   # or just type: reload
-  ```
-5. **Test it out**
-  ```powershell
-   helpme                                    # Show all commands
-   Get-Command -Module PowerShellDevToolkit  # List all functions
   ```
 
 ## Requirements
