@@ -31,5 +31,8 @@
   },
   "editor": {
     "notepadPlusPlus": "C:\\Program Files\\Notepad++\\notepad++.exe"
+  },
+  "toolkit": {
+    "updateCheckDays": 1
   }
 }

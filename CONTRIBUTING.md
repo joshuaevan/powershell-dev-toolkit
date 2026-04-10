@@ -30,24 +30,24 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 1. **Fork the repository**
 2. **Create a new branch** from `main`:
-   ```powershell
+  ```powershell
    git checkout -b feature/your-feature-name
-   ```
+  ```
 3. **Make your changes**:
-   - Follow the existing code style
-   - Add comments for complex logic
-   - Update documentation if needed
+  - Follow the existing code style
+  - Add comments for complex logic
+  - Update documentation if needed
 4. **Test your changes**:
-   - Test on a clean Windows machine if possible
-   - Ensure backward compatibility
+  - Test on a clean Windows machine if possible
+  - Ensure backward compatibility
 5. **Commit your changes**:
-   ```powershell
+  ```powershell
    git commit -m "Add feature: your feature description"
-   ```
+  ```
 6. **Push to your fork**:
-   ```powershell
+  ```powershell
    git push origin feature/your-feature-name
-   ```
+  ```
 7. **Open a Pull Request** with a clear title and description
 
 ## Coding Standards
@@ -55,58 +55,53 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 ### PowerShell Script Guidelines
 
 1. **Use meaningful variable names**
-   ```powershell
+  ```powershell
    # Good
    $serverHostname = "example.com"
-   
+
    # Bad
    $s = "example.com"
-   ```
-
+  ```
 2. **Include comment-based help** for all scripts
-   ```powershell
+  ```powershell
    <#
    .SYNOPSIS
        Brief description
-   
+
    .DESCRIPTION
        Detailed description
-   
+
    .PARAMETER Name
        Parameter description
-   
+
    .EXAMPLE
        script.ps1 -Name "test"
    #>
-   ```
-
+  ```
 3. **Use approved verbs** for function names
-   - Get-, Set-, New-, Remove-, Add-, etc.
-   - Check: `Get-Verb`
-
+  - Get-, Set-, New-, Remove-, Add-, etc.
+  - Check: `Get-Verb`
 4. **Handle errors gracefully**
-   ```powershell
+  ```powershell
    try {
        # Your code
    } catch {
        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
        exit 1
    }
-   ```
-
+  ```
 5. **Support common parameters** when appropriate
-   ```powershell
+  ```powershell
    [CmdletBinding()]
    param(
        [Parameter(Mandatory=$true)]
        [string]$Name
    )
-   ```
-
+  ```
 6. **Provide meaningful output**
-   - Use colored output for better UX
-   - Support `-AsJson` for programmatic use where appropriate
-   - Show progress for long-running operations
+  - Use colored output for better UX
+  - Support `-AsJson` for programmatic use where appropriate
+  - Show progress for long-running operations
 
 ### Configuration
 
@@ -131,9 +126,32 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ## Testing
 
-While we don't have automated tests yet, please:
+Tests are written with [Pester 5](https://pester.dev/) in the `tests/` directory. Run the full suite with:
 
-1. **Test your changes manually** on Windows 10 and 11
+```powershell
+.\Invoke-Tests.ps1
+```
+
+This installs Pester 5+ if needed and runs all tests with detailed output. Tests also run automatically via GitHub Actions CI on every push and pull request.
+
+When adding new commands, please add corresponding test coverage. Tests should use the Pester 5 `BeforeAll` pattern:
+
+```powershell
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
+
+Describe "Your-Command" {
+    It "Should do something" {
+        # test code
+    }
+}
+```
+
+Also test manually:
+
+1. **Test your changes** on Windows 10 and 11
 2. **Test with PowerShell 5.1 and 7+**
 3. **Test without WSL** (fallback scenarios)
 4. **Test with missing dependencies** (graceful degradation)
@@ -142,19 +160,31 @@ While we don't have automated tests yet, please:
 
 ```
 powershell-dev-toolkit/
-├── README.md              # Main documentation
-├── config.example.json    # Configuration template
-├── Setup-Environment.ps1  # Setup script
-├── Get-ScriptConfig.ps1   # Config loader
-├── Connect-SSH.ps1        # SSH scripts
-├── Connect-SSHTunnel.ps1
-├── Get-*.ps1              # Get/retrieve commands
-├── Invoke-*.ps1           # Action commands
-├── Start-*.ps1            # Start/launch commands
-├── Watch-*.ps1            # Monitor commands
-├── New-*.ps1              # Create/generate commands
-└── creds/                 # Credentials (gitignored)
+├── PowerShellDevToolkit/           # The PS module
+│   ├── PowerShellDevToolkit.psd1   # Module manifest (version, exports)
+│   ├── PowerShellDevToolkit.psm1   # Root module (auto-loader, aliases)
+│   ├── Public/                     # Exported functions (one per file)
+│   │   ├── Connect-SSH.ps1
+│   │   ├── Get-GitQuick.ps1
+│   │   └── ...
+│   └── Private/                    # Internal helpers (not exported)
+│       └── Get-ScriptConfig.ps1
+├── tests/                          # Pester tests
+├── docs/                           # Documentation
+├── config.example.json             # Configuration template
+├── Setup-Environment.ps1           # Bootstrap / installer
+├── README.md
+├── LICENSE
+└── creds/                          # Credentials (gitignored)
 ```
+
+### Adding a new command
+
+1. Create `PowerShellDevToolkit\Public\Verb-Noun.ps1` with a `function Verb-Noun { ... }` wrapper
+2. Add the function name to `FunctionsToExport` in `PowerShellDevToolkit.psd1`
+3. Optionally add a short alias in `PowerShellDevToolkit.psm1` and `AliasesToExport` in the `.psd1`
+4. Add a test file `tests\Verb-Noun.Tests.ps1`
+5. Update `Show-Help` in `Public\Show-Help.ps1` with the new command reference
 
 ## Commit Messages
 
@@ -169,6 +199,7 @@ Use clear and meaningful commit messages:
 - **chore**: Maintenance tasks
 
 Examples:
+
 ```
 feat: add support for SQLServer tunneling
 fix: resolve credential loading on PowerShell 7
