@@ -1,4 +1,6 @@
-
+<p align="center">
+  <img src="Powershell-dev-toolkit-logo.png" alt="PowerShell Dev Toolkit" width="150">
+</p>
 
 # PowerShell Dev Toolkit for Windows
 
