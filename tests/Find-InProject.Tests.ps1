@@ -1,4 +1,5 @@
-$scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
 
 Describe "Find-InProject" {
     function New-SearchFixture {
@@ -17,7 +18,7 @@ Describe "Find-InProject" {
     It "Should find matches and return correct JSON structure" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "login" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.pattern | Should Be "login"
             $result.totalMatches | Should BeGreaterThan 0
@@ -31,7 +32,7 @@ Describe "Find-InProject" {
     It "Should return match line numbers" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "login" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $firstMatch = $result.results[0].matches[0]
             $firstMatch.line | Should BeGreaterThan 0
@@ -44,7 +45,7 @@ Describe "Find-InProject" {
     It "Should respect -Type filter for php" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" "login" -Type "php" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject "login" -Type "php" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.fileCount | Should Be 1
             $files = $result.results | ForEach-Object { $_.file }
@@ -57,7 +58,7 @@ Describe "Find-InProject" {
     It "Should exclude node_modules and vendor directories" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "login" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $files = $result.results | ForEach-Object { $_.file }
             $hasNodeModules = ($files | Where-Object { $_ -match 'node_modules' } | Measure-Object).Count
@@ -72,7 +73,7 @@ Describe "Find-InProject" {
     It "Should be case-insensitive by default" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "LOGIN" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "LOGIN" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.totalMatches | Should BeGreaterThan 0
         } finally {
@@ -83,7 +84,7 @@ Describe "Find-InProject" {
     It "Should respect -CaseSensitive flag" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "LOGIN" -CaseSensitive -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "LOGIN" -CaseSensitive -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.totalMatches | Should Be 0
         } finally {
@@ -94,7 +95,7 @@ Describe "Find-InProject" {
     It "Should return zero matches for non-matching pattern" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "zzz_no_match_zzz" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "zzz_no_match_zzz" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.totalMatches | Should Be 0
             $result.fileCount | Should Be 0
@@ -106,7 +107,7 @@ Describe "Find-InProject" {
     It "Should find matches in both php and js files" {
         $tempDir = New-SearchFixture
         try {
-            $raw = & "$scriptDir\Find-InProject.ps1" -Pattern "login" -Path $tempDir -AsJson 2>$null
+            $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.fileCount | Should Be 2
         } finally {

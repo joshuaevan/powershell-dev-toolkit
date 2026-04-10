@@ -1,4 +1,5 @@
-$scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
 
 Describe "Get-ProjectInfo" {
     It "Should detect Node.js project" {
@@ -7,7 +8,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "test-app"; version = "1.0.0"; dependencies = @{}; scripts = @{ dev = "node index.js" } } |
                 ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'Node.js'
             $result.name | Should Be 'test-app'
@@ -23,7 +24,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "react-app"; dependencies = @{ react = "^18.0.0"; "react-dom" = "^18.0.0" } } |
                 ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'Node.js'
             $result.framework | Should Be 'React'
@@ -38,7 +39,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "next-app"; dependencies = @{ react = "^18.0.0"; next = "^14.0.0" } } |
                 ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.framework | Should Be 'Next.js'
         } finally {
@@ -52,7 +53,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "vue-app"; dependencies = @{ vue = "^3.0.0" } } |
                 ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.framework | Should Be 'Vue'
         } finally {
@@ -66,7 +67,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "api"; dependencies = @{ express = "^4.0.0" } } |
                 ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.framework | Should Be 'Express'
         } finally {
@@ -81,7 +82,7 @@ Describe "Get-ProjectInfo" {
             @{ name = "laravel-app"; require = @{ "laravel/framework" = "^10.0" } } |
                 ConvertTo-Json | Set-Content "$dir\composer.json"
             Set-Content "$dir\artisan" "#!/usr/bin/env php"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'PHP'
             $result.framework | Should Be 'Laravel'
@@ -95,7 +96,7 @@ Describe "Get-ProjectInfo" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             Set-Content "$dir\cpanfile" "requires 'Mojolicious';`nrequires 'DBI';"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'Perl'
             $result.dependencies | Should Be 2
@@ -109,7 +110,7 @@ Describe "Get-ProjectInfo" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             Set-Content "$dir\requirements.txt" "flask==2.0`nrequests==2.28`n"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'Python'
             $result.dependencies | Should Be 2
@@ -124,7 +125,7 @@ Describe "Get-ProjectInfo" {
         try {
             Set-Content "$dir\requirements.txt" "django==4.2`n"
             Set-Content "$dir\manage.py" "#!/usr/bin/env python"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.framework | Should Be 'Django'
         } finally {
@@ -136,7 +137,7 @@ Describe "Get-ProjectInfo" {
         $dir = Join-Path $env:TEMP "pester-projinfo-empty-$(Get-Random)"
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.type | Should Be 'Unknown'
         } finally {
@@ -149,7 +150,7 @@ Describe "Get-ProjectInfo" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             @{ name = "test"; dependencies = @{} } | ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             ($null -ne $result.hasGit) | Should Be $true
             ($null -ne $result.hasDocker) | Should Be $true
@@ -168,7 +169,7 @@ Describe "Get-ProjectInfo" {
                 dependencies = @{ react = "^18"; axios = "^1"; lodash = "^4" }
                 devDependencies = @{ jest = "^29"; eslint = "^8" }
             } | ConvertTo-Json | Set-Content "$dir\package.json"
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.dependencies | Should Be 3
             $result.devDependencies | Should Be 2
@@ -183,7 +184,7 @@ Describe "Get-ProjectInfo" {
         try {
             @{ name = "with-tests"; dependencies = @{} } | ConvertTo-Json | Set-Content "$dir\package.json"
             New-Item -Path "$dir\tests" -ItemType Directory -Force | Out-Null
-            $raw = & "$scriptDir\Get-ProjectInfo.ps1" -Path $dir -AsJson 2>$null
+            $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.hasTests | Should Be $true
         } finally {

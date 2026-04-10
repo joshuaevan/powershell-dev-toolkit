@@ -1,4 +1,5 @@
-$scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
 
 function New-TempGitRepo {
     $dir = Join-Path $env:TEMP "pester-git-$(Get-Random)"
@@ -17,7 +18,7 @@ Describe "Get-GitQuick" {
         $tempDir = New-TempGitRepo
         Push-Location $tempDir
         try {
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             ($null -ne $result.branch) | Should Be $true
             ($null -ne $result.ahead) | Should Be $true
@@ -37,7 +38,7 @@ Describe "Get-GitQuick" {
         $tempDir = New-TempGitRepo
         Push-Location $tempDir
         try {
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.clean | Should Be $true
             $result.staged | Should Be 0
@@ -54,7 +55,7 @@ Describe "Get-GitQuick" {
         Push-Location $tempDir
         try {
             Set-Content "newfile.txt" "hello"
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.clean | Should Be $false
             $result.untracked | Should Be 1
@@ -70,7 +71,7 @@ Describe "Get-GitQuick" {
         try {
             Set-Content "staged.txt" "content"
             git add staged.txt 2>$null
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.staged | Should Be 1
             $result.clean | Should Be $false
@@ -88,7 +89,7 @@ Describe "Get-GitQuick" {
             git add tracked.txt 2>$null
             git commit -m "add tracked" 2>$null | Out-Null
             Set-Content "tracked.txt" "modified"
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.modified | Should Be 1
         } finally {
@@ -101,7 +102,7 @@ Describe "Get-GitQuick" {
         $tempDir = New-TempGitRepo
         Push-Location $tempDir
         try {
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             ($result.branch -eq 'main' -or $result.branch -eq 'master') | Should Be $true
         } finally {
@@ -114,7 +115,7 @@ Describe "Get-GitQuick" {
         $tempDir = New-TempGitRepo
         Push-Location $tempDir
         try {
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $result.stashes | Should Be 0
         } finally {
@@ -127,7 +128,7 @@ Describe "Get-GitQuick" {
         $tempDir = New-TempGitRepo
         Push-Location $tempDir
         try {
-            $raw = & "$scriptDir\Get-GitQuick.ps1" -AsJson 2>$null
+            $raw = Get-GitQuick -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             ($null -ne $result.files.staged) | Should Be $true
             ($null -ne $result.files.modified) | Should Be $true

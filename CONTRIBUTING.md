@@ -131,9 +131,22 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ## Testing
 
-While we don't have automated tests yet, please:
+Tests are written with [Pester](https://pester.dev/) in the `tests/` directory. Run the full suite with:
 
-1. **Test your changes manually** on Windows 10 and 11
+```powershell
+Invoke-Pester .\tests\
+```
+
+When adding new commands, please add corresponding test coverage. Tests import the module with:
+
+```powershell
+$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+```
+
+Also test manually:
+
+1. **Test your changes** on Windows 10 and 11
 2. **Test with PowerShell 5.1 and 7+**
 3. **Test without WSL** (fallback scenarios)
 4. **Test with missing dependencies** (graceful degradation)
@@ -142,19 +155,31 @@ While we don't have automated tests yet, please:
 
 ```
 powershell-dev-toolkit/
-├── README.md              # Main documentation
-├── config.example.json    # Configuration template
-├── Setup-Environment.ps1  # Setup script
-├── Get-ScriptConfig.ps1   # Config loader
-├── Connect-SSH.ps1        # SSH scripts
-├── Connect-SSHTunnel.ps1
-├── Get-*.ps1              # Get/retrieve commands
-├── Invoke-*.ps1           # Action commands
-├── Start-*.ps1            # Start/launch commands
-├── Watch-*.ps1            # Monitor commands
-├── New-*.ps1              # Create/generate commands
-└── creds/                 # Credentials (gitignored)
+├── PowerShellDevToolkit/           # The PS module
+│   ├── PowerShellDevToolkit.psd1   # Module manifest (version, exports)
+│   ├── PowerShellDevToolkit.psm1   # Root module (auto-loader, aliases)
+│   ├── Public/                     # Exported functions (one per file)
+│   │   ├── Connect-SSH.ps1
+│   │   ├── Get-GitQuick.ps1
+│   │   └── ...
+│   └── Private/                    # Internal helpers (not exported)
+│       └── Get-ScriptConfig.ps1
+├── tests/                          # Pester tests
+├── docs/                           # Documentation
+├── config.example.json             # Configuration template
+├── Setup-Environment.ps1           # Bootstrap / installer
+├── README.md
+├── LICENSE
+└── creds/                          # Credentials (gitignored)
 ```
+
+### Adding a new command
+
+1. Create `PowerShellDevToolkit\Public\Verb-Noun.ps1` with a `function Verb-Noun { ... }` wrapper
+2. Add the function name to `FunctionsToExport` in `PowerShellDevToolkit.psd1`
+3. Optionally add a short alias in `PowerShellDevToolkit.psm1` and `AliasesToExport` in the `.psd1`
+4. Add a test file `tests\Verb-Noun.Tests.ps1`
+5. Update `Show-Help` in `Public\Show-Help.ps1` with the new command reference
 
 ## Commit Messages
 

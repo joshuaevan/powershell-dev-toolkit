@@ -26,16 +26,14 @@
    cd powershell-dev-toolkit
    ```
 
-2. **Run the setup script**
+2. **Import the module** (one-time setup)
    ```powershell
+   # Option A: Run the setup script (recommended)
    .\Setup-Environment.ps1
-   ```
    
-   The setup will:
-   - Check all dependencies
-   - Guide you through configuration
-   - Update your PowerShell profile with aliases
-   - Install missing PowerShell modules (optional)
+   # Option B: Add to your profile manually
+   Add-Content $PROFILE 'Import-Module "C:\dev\powershell-dev-toolkit\PowerShellDevToolkit"'
+   ```
 
 3. **Configure your settings**
    ```powershell
@@ -54,7 +52,8 @@
 
 5. **Test it out**
    ```powershell
-   helpme  # Show all commands
+   helpme                                    # Show all commands
+   Get-Command -Module PowerShellDevToolkit  # List all functions
    ```
 
 ## Requirements
@@ -181,11 +180,25 @@ Configure your preferred editor in `config.json`:
 
 ## Customization
 
+### Module Structure
+
+The toolkit is organized as a standard PowerShell module:
+
+```
+PowerShellDevToolkit/
+  PowerShellDevToolkit.psd1   # Module manifest (version, exports)
+  PowerShellDevToolkit.psm1   # Root module (auto-loader)
+  Public/                     # Exported functions (one per file)
+  Private/                    # Internal helpers (not exported)
+```
+
 ### Adding Custom Commands
 
-1. Create a new `.ps1` file in the scripts directory
-2. Add an alias in your PowerShell profile
-3. Run `reload` to apply changes
+1. Create a new `Verb-Noun.ps1` file in `PowerShellDevToolkit\Public\`
+2. Wrap your code in a function with the same name
+3. Add the function name to `FunctionsToExport` in the `.psd1`
+4. Optionally add an alias in the `.psm1` and `AliasesToExport` in the `.psd1`
+5. Run `Import-Module .\PowerShellDevToolkit -Force` to reload
 
 ### Extending SSH Servers
 

@@ -1,4 +1,5 @@
-$scriptDir = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
 
 Describe "Copy-ToClipboard" {
     It "Should copy file contents to clipboard" {
@@ -6,7 +7,7 @@ Describe "Copy-ToClipboard" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             Set-Content "$dir\test.txt" "clipboard test content"
-            & "$scriptDir\Copy-ToClipboard.ps1" -Path "$dir\test.txt" 2>$null | Out-Null
+            Copy-ToClipboard -Path "$dir\test.txt" 2>$null | Out-Null
             $clip = Get-Clipboard
             ($clip -match 'clipboard test content') | Should Be $true
         } finally {
@@ -17,7 +18,7 @@ Describe "Copy-ToClipboard" {
     It "Should copy current directory with -Pwd" {
         $before = Get-Location
         try {
-            & "$scriptDir\Copy-ToClipboard.ps1" -Pwd 2>$null | Out-Null
+            Copy-ToClipboard -Pwd 2>$null | Out-Null
             $clip = Get-Clipboard
             $clip | Should Be (Get-Location).Path
         } finally {
@@ -30,7 +31,7 @@ Describe "Copy-ToClipboard" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             Set-Content "$dir\test.txt" "content"
-            & "$scriptDir\Copy-ToClipboard.ps1" -Path "$dir\test.txt" -PathOnly 2>$null | Out-Null
+            Copy-ToClipboard -Path "$dir\test.txt" -PathOnly 2>$null | Out-Null
             $clip = Get-Clipboard
             ($clip -like "*test.txt") | Should Be $true
         } finally {
@@ -38,13 +39,13 @@ Describe "Copy-ToClipboard" {
         }
     }
 
-    It "Should exit 1 for missing file" {
-        & "$scriptDir\Copy-ToClipboard.ps1" -Path "C:\nonexistent_file_xyz.txt" 2>$null | Out-Null
-        $LASTEXITCODE | Should Be 1
+    It "Should show error for missing file" {
+        $output = Copy-ToClipboard -Path "C:\nonexistent_file_xyz.txt" *>&1 | Out-String
+        ($output -match 'not found') | Should Be $true
     }
 
     It "Should show usage with no arguments" {
-        $output = & "$scriptDir\Copy-ToClipboard.ps1" *>&1 | Out-String
+        $output = Copy-ToClipboard *>&1 | Out-String
         ($output -match 'Usage') | Should Be $true
     }
 }
