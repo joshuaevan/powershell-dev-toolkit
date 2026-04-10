@@ -43,9 +43,7 @@ param(
     [string]$Path = '.',
 
     [switch]$CaseSensitive,
-    [switch]$AsJson,
-
-    [int]$Context = 0
+    [switch]$AsJson
 )
 
 # Resolve path

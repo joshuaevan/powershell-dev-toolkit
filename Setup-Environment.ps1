@@ -55,7 +55,7 @@ $ErrorActionPreference = 'Continue'
 # Color helper functions
 function Write-Status { param([string]$Text) Write-Host $Text -ForegroundColor Cyan }
 function Write-Success { param([string]$Text) Write-Host "[OK] $Text" -ForegroundColor Green }
-function Write-Warning { param([string]$Text) Write-Host "[WARN] $Text" -ForegroundColor Yellow }
+function Write-Warn { param([string]$Text) Write-Host "[WARN] $Text" -ForegroundColor Yellow }
 function Write-Failure { param([string]$Text) Write-Host "[FAIL] $Text" -ForegroundColor Red }
 function Write-Info { param([string]$Text) Write-Host "  $Text" -ForegroundColor Gray }
 
@@ -150,7 +150,7 @@ if ($wsl) {
                 Write-Success "Installed"
                 $results.Optional += "sshpass (WSL)"
             } else {
-                Write-Warning "Not installed"
+                Write-Warn "Not installed"
                 $results.Warnings += "sshpass (WSL) - can auto-install on first use"
                 Write-Info "    Will be installed automatically on first SSH connection"
             }
@@ -159,11 +159,11 @@ if ($wsl) {
             $results.Optional += "WSL"
         }
     } catch {
-        Write-Warning "Installed but not configured"
+        Write-Warn "Installed but not configured"
         Write-Info "    Run 'wsl --install' and restart"
     }
 } else {
-    Write-Warning "Not installed"
+    Write-Warn "Not installed"
     $results.Warnings += "WSL - SSH features will use Posh-SSH instead"
     Write-Info "    Optional but recommended. Install with: wsl --install"
 }
@@ -176,7 +176,7 @@ if ($poshSSH) {
     $results.Optional += "Posh-SSH $($poshSSH.Version)"
 } else {
     if (-not $wsl) {
-        Write-Warning "Not installed (fallback for SSH without WSL)"
+        Write-Warn "Not installed (fallback for SSH without WSL)"
         $results.Warnings += "Posh-SSH - needed if WSL not available"
         Write-Info "    Install with: Install-Module -Name Posh-SSH -Scope CurrentUser"
         
@@ -203,7 +203,7 @@ if (Test-Path $credsDir) {
     Write-Success "$credsDir"
     $results.Optional += "Credentials directory"
 } else {
-    Write-Warning "Not found - creating..."
+    Write-Warn "Not found - creating..."
     try {
         New-Item -Path $credsDir -ItemType Directory -Force | Out-Null
         Write-Success "Created $credsDir"
@@ -356,7 +356,7 @@ $scriptsInPath = $pathEntries -contains $scriptDir
 if ($scriptsInPath) {
     Write-Success "Yes"
 } else {
-    Write-Warning "No"
+    Write-Warn "No"
     $results.Warnings += "Scripts directory not in PATH"
     Write-Info "    Add to PATH to run scripts from anywhere (examples use c:\powershell-dev-toolkit)"
     Write-Info "    Current PowerShell session: `$env:Path += ';$scriptDir'"
@@ -377,7 +377,7 @@ $profileExists = Test-Path $PROFILE
 if ($profileExists) {
     Write-Success "Yes ($PROFILE)"
 } else {
-    Write-Warning "No"
+    Write-Warn "No"
     Write-Info "    Will be created if you choose to update profile"
 }
 
@@ -391,11 +391,11 @@ if ($profileExists) {
         Write-Success "Yes (aliases configured)"
         $results.Optional += "PowerShell profile configured"
     } else {
-        Write-Warning "Not configured"
+        Write-Warn "Not configured"
         $results.Warnings += "PowerShell profile - aliases not set up"
     }
 } else {
-    Write-Warning "No profile file"
+    Write-Warn "No profile file"
     $results.Warnings += "PowerShell profile - needs creation"
 }
 
@@ -573,7 +573,7 @@ Write-Host ""
 if ($results.Missing.Count -eq 0) {
     Write-Success "Setup complete! Your environment is ready."
 } else {
-    Write-Warning "Setup complete with warnings. Install missing components as needed."
+    Write-Warn "Setup complete with warnings. Install missing components as needed."
 }
 
 Write-Host ""

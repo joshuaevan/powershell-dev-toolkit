@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Enhanced git status with branch info.
 
@@ -23,7 +23,8 @@ param(
 )
 
 # Check if in git repo
-if (-not (Test-Path '.git')) {
+$isGitRepo = git rev-parse --is-inside-work-tree 2>$null
+if ($isGitRepo -ne 'true') {
     if ($AsJson) {
         @{ error = 'Not a git repository' } | ConvertTo-Json
     } else {
@@ -206,7 +207,7 @@ if ($isClean) {
 # Stashes
 if ($stashCount -gt 0) {
     Write-Host ""
-    Write-Host "  [STASH] $stashCount stash(es)" -ForegroundColor Magenta
+    Write-Host "  [STASH] $stashCount stashes" -ForegroundColor Magenta
 }
 
 Write-Host ""

@@ -31,7 +31,7 @@ param(
     [string]$Path,
 
     [Parameter(ParameterSetName = 'PathOnly')]
-    [Alias('Path')]
+    [Alias('PathMode')]
     [switch]$PathOnly,
 
     [Parameter(ParameterSetName = 'Pwd')]

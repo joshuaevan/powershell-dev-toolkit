@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Quick reference for your PowerShell shortcuts and commands.
 #>

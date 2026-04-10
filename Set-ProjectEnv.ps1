@@ -35,8 +35,8 @@ param(
     [switch]$Unload
 )
 
-# Track loaded variables for unloading
-$script:LoadedEnvVars = if ($global:LoadedEnvVars) { $global:LoadedEnvVars } else { @() }
+# Initialize global tracking if not already set
+if (-not $global:LoadedEnvVars) { $global:LoadedEnvVars = @() }
 
 # Sensitive key patterns to redact
 $sensitivePatterns = @(

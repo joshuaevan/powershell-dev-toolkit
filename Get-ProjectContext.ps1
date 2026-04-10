@@ -82,13 +82,17 @@ function Get-ProjectType {
         return @{ type = 'PHP'; framework = 'Symfony' }
     }
     
-    # Check Node/React
+    # Check Node/React/Vue
     if (Test-Path "$ProjectPath\package.json") {
         $pkg = Get-Content "$ProjectPath\package.json" -Raw | ConvertFrom-Json -ErrorAction SilentlyContinue
         if ($pkg.dependencies.react -or $pkg.devDependencies.react) {
             $fw = 'React'
             if ($pkg.dependencies.next -or $pkg.devDependencies.next) { $fw = 'Next.js' }
-            if ($pkg.dependencies.vue -or $pkg.devDependencies.vue) { $fw = 'Vue' }
+            return @{ type = 'JavaScript/Node'; framework = $fw }
+        }
+        if ($pkg.dependencies.vue -or $pkg.devDependencies.vue) {
+            $fw = 'Vue'
+            if ($pkg.dependencies.nuxt -or $pkg.devDependencies.nuxt) { $fw = 'Nuxt' }
             return @{ type = 'JavaScript/Node'; framework = $fw }
         }
         if ($pkg.dependencies.express) {
