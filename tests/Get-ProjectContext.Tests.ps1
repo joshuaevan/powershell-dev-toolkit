@@ -1,5 +1,7 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "Get-ProjectContext" {
     It "Should detect Laravel project" {
@@ -10,8 +12,8 @@ Describe "Get-ProjectContext" {
             Set-Content "$dir\artisan" "#!/usr/bin/env php"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'PHP'
-            $result.framework | Should Be 'Laravel'
+            $result.type | Should -Be 'PHP'
+            $result.framework | Should -Be 'Laravel'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -24,7 +26,7 @@ Describe "Get-ProjectContext" {
             @{ dependencies = @{ express = "^4.0.0" } } | ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.framework | Should Be 'Express'
+            $result.framework | Should -Be 'Express'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -38,8 +40,8 @@ Describe "Get-ProjectContext" {
             Set-Content "$dir\manage.py" "#!/usr/bin/env python"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Python'
-            $result.framework | Should Be 'Django'
+            $result.type | Should -Be 'Python'
+            $result.framework | Should -Be 'Django'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -53,7 +55,7 @@ Describe "Get-ProjectContext" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            ($result.dependencies | Measure-Object).Count | Should Be 3
+            ($result.dependencies | Measure-Object).Count | Should -Be 3
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -67,7 +69,7 @@ Describe "Get-ProjectContext" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            ($result.scripts | Measure-Object).Count | Should Be 3
+            ($result.scripts | Measure-Object).Count | Should -Be 3
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -82,9 +84,9 @@ Describe "Get-ProjectContext" {
             @{ dependencies = @{} } | ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            ($result.structure | Measure-Object).Count | Should BeGreaterThan 0
+            ($result.structure | Measure-Object).Count | Should -BeGreaterThan 0
             $names = $result.structure | ForEach-Object { $_.name }
-            ($names -contains 'src') | Should Be $true
+            ($names -contains 'src') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -97,9 +99,9 @@ Describe "Get-ProjectContext" {
             Set-Content "$dir\requirements.txt" "flask"
             $raw = Get-ProjectContext -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.environment.os | Should Be 'Windows'
-            $result.environment.shell | Should Be 'PowerShell'
-            ($null -ne $result.environment.wsl) | Should Be $true
+            $result.environment.os | Should -Be 'Windows'
+            $result.environment.shell | Should -Be 'PowerShell'
+            ($null -ne $result.environment.wsl) | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -112,7 +114,7 @@ Describe "Get-ProjectContext" {
             @{ dependencies = @{ react = "^18" } } | ConvertTo-Json | Set-Content "$dir\package.json"
             $full = Get-ProjectContext -Path $dir 2>$null | Out-String
             $brief = Get-ProjectContext -Path $dir -Brief 2>$null | Out-String
-            ($brief.Length -lt $full.Length) | Should Be $true
+            ($brief.Length -lt $full.Length) | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }

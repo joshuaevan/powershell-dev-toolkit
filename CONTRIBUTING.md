@@ -126,17 +126,27 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ## Testing
 
-Tests are written with [Pester](https://pester.dev/) in the `tests/` directory. Run the full suite with:
+Tests are written with [Pester 5](https://pester.dev/) in the `tests/` directory. Run the full suite with:
 
 ```powershell
-Invoke-Pester .\tests\
+.\Invoke-Tests.ps1
 ```
 
-When adding new commands, please add corresponding test coverage. Tests import the module with:
+This installs Pester 5+ if needed and runs all tests with detailed output. Tests also run automatically via GitHub Actions CI on every push and pull request.
+
+When adding new commands, please add corresponding test coverage. Tests should use the Pester 5 `BeforeAll` pattern:
 
 ```powershell
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
+
+Describe "Your-Command" {
+    It "Should do something" {
+        # test code
+    }
+}
 ```
 
 Also test manually:

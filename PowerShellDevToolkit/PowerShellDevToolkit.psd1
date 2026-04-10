@@ -1,6 +1,6 @@
 @{
     RootModule        = 'PowerShellDevToolkit.psm1'
-    ModuleVersion     = '1.1.0'
+    ModuleVersion     = '1.2.0'
     GUID              = '882e07c2-69ad-46e6-aea6-07adb025f6b3'
     Author            = 'PowerShell Dev Toolkit Contributors'
     CompanyName       = 'Community'
@@ -10,6 +10,7 @@
     PowerShellVersion = '5.1'
 
     FunctionsToExport = @(
+        # Original commands
         'Connect-SSH'
         'Connect-SSHTunnel'
         'Copy-ToClipboard'
@@ -27,12 +28,32 @@
         'Show-RecentCommands'
         'Start-DevServer'
         'Watch-LogFile'
+        # File & editor commands
+        'Edit-File'
+        'Edit-Profile'
+        'Edit-Hosts'
+        'Use-NppForGit'
+        'Set-FileTimestamp'
+        'Open-Item'
+        # Directory commands
+        'Get-DirectoryListing'
+        'New-DirectoryAndEnter'
+        'Set-TempLocation'
+        # Utility commands
+        'Get-CommandLocation'
+        'Invoke-Elevated'
+        'Add-Path'
+        'Invoke-ProfileReload'
+        # Network commands
+        'Get-IPAddress'
+        'Clear-DNSCache'
     )
 
     CmdletsToExport   = @()
     VariablesToExport  = @()
 
     AliasesToExport   = @(
+        # Original aliases
         'cssh'
         'tunnel'
         'tssh'
@@ -51,6 +72,23 @@
         'ai-rules'
         'rc'
         'helpme'
+        # File & editor aliases
+        'e'
+        'npp'
+        'touch'
+        'open'
+        # Directory aliases
+        'll'
+        'mkcd'
+        'temp'
+        # Utility aliases
+        'which'
+        'sudo'
+        'reload'
+        'grep'
+        # Network aliases
+        'ip'
+        'Flush-DNS'
     )
 
     PrivateData = @{

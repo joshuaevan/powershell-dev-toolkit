@@ -1,5 +1,7 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "Set-ProjectEnv" {
     It "Should load .env variables into process environment" {
@@ -10,8 +12,8 @@ Describe "Set-ProjectEnv" {
             Push-Location $dir
             Set-ProjectEnv -Path "$dir\.env" 2>$null | Out-Null
             Pop-Location
-            [Environment]::GetEnvironmentVariable('PESTER_TEST_VAR') | Should Be 'hello123'
-            [Environment]::GetEnvironmentVariable('PESTER_TEST_VAR2') | Should Be 'world456'
+            [Environment]::GetEnvironmentVariable('PESTER_TEST_VAR') | Should -Be 'hello123'
+            [Environment]::GetEnvironmentVariable('PESTER_TEST_VAR2') | Should -Be 'world456'
         } finally {
             [Environment]::SetEnvironmentVariable('PESTER_TEST_VAR', $null, 'Process')
             [Environment]::SetEnvironmentVariable('PESTER_TEST_VAR2', $null, 'Process')
@@ -25,7 +27,7 @@ Describe "Set-ProjectEnv" {
         try {
             Set-Content "$dir\.env" 'PESTER_QUOTED="value with spaces"'
             Set-ProjectEnv -Path "$dir\.env" 2>$null | Out-Null
-            [Environment]::GetEnvironmentVariable('PESTER_QUOTED') | Should Be 'value with spaces'
+            [Environment]::GetEnvironmentVariable('PESTER_QUOTED') | Should -Be 'value with spaces'
         } finally {
             [Environment]::SetEnvironmentVariable('PESTER_QUOTED', $null, 'Process')
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
@@ -39,7 +41,7 @@ Describe "Set-ProjectEnv" {
             $content = "# This is a comment`n`nPESTER_REAL_VAR=yes`n# Another comment`n"
             Set-Content "$dir\.env" $content
             Set-ProjectEnv -Path "$dir\.env" 2>$null | Out-Null
-            [Environment]::GetEnvironmentVariable('PESTER_REAL_VAR') | Should Be 'yes'
+            [Environment]::GetEnvironmentVariable('PESTER_REAL_VAR') | Should -Be 'yes'
         } finally {
             [Environment]::SetEnvironmentVariable('PESTER_REAL_VAR', $null, 'Process')
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
@@ -52,7 +54,7 @@ Describe "Set-ProjectEnv" {
         try {
             Set-Content "$dir\.env" "PESTER_INLINE=value # this is a comment"
             Set-ProjectEnv -Path "$dir\.env" 2>$null | Out-Null
-            [Environment]::GetEnvironmentVariable('PESTER_INLINE') | Should Be 'value'
+            [Environment]::GetEnvironmentVariable('PESTER_INLINE') | Should -Be 'value'
         } finally {
             [Environment]::SetEnvironmentVariable('PESTER_INLINE', $null, 'Process')
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
@@ -64,7 +66,7 @@ Describe "Set-ProjectEnv" {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         try {
             $output = Set-ProjectEnv -Path "$dir\.env.nonexistent" *>&1 | Out-String
-            ($output -match 'not found') | Should Be $true
+            ($output -match 'not found') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -76,7 +78,7 @@ Describe "Set-ProjectEnv" {
         try {
             Set-Content "$dir\.env" "LIST_ONLY_VAR=should_not_set"
             Set-ProjectEnv -Path "$dir\.env" -List 2>$null | Out-Null
-            [Environment]::GetEnvironmentVariable('LIST_ONLY_VAR') | Should BeNullOrEmpty
+            [Environment]::GetEnvironmentVariable('LIST_ONLY_VAR') | Should -BeNullOrEmpty
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }

@@ -1,8 +1,11 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "Find-InProject" {
-    function New-SearchFixture {
+    BeforeAll {
+        function New-SearchFixture {
         $dir = Join-Path $env:TEMP "pester-search-$(Get-Random)"
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
         Set-Content "$dir\app.php" "<?php`nfunction login() {`n    return true;`n}`n"
@@ -12,7 +15,8 @@ Describe "Find-InProject" {
         Set-Content "$dir\node_modules\dep.js" "function login() { }`n"
         New-Item -Path "$dir\vendor" -ItemType Directory -Force | Out-Null
         Set-Content "$dir\vendor\lib.php" "function login() { }`n"
-        return $dir
+            return $dir
+        }
     }
 
     It "Should find matches and return correct JSON structure" {
@@ -20,10 +24,10 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.pattern | Should Be "login"
-            $result.totalMatches | Should BeGreaterThan 0
-            $result.fileCount | Should BeGreaterThan 0
-            ($result.results | Measure-Object).Count | Should BeGreaterThan 0
+            $result.pattern | Should -Be "login"
+            $result.totalMatches | Should -BeGreaterThan 0
+            $result.fileCount | Should -BeGreaterThan 0
+            ($result.results | Measure-Object).Count | Should -BeGreaterThan 0
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -35,8 +39,8 @@ Describe "Find-InProject" {
             $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
             $firstMatch = $result.results[0].matches[0]
-            $firstMatch.line | Should BeGreaterThan 0
-            $firstMatch.content | Should Not BeNullOrEmpty
+            $firstMatch.line | Should -BeGreaterThan 0
+            $firstMatch.content | Should -Not -BeNullOrEmpty
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -47,9 +51,9 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject "login" -Type "php" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.fileCount | Should Be 1
+            $result.fileCount | Should -Be 1
             $files = $result.results | ForEach-Object { $_.file }
-            ($files | Where-Object { $_ -like "*.php" } | Measure-Object).Count | Should Be 1
+            ($files | Where-Object { $_ -like "*.php" } | Measure-Object).Count | Should -Be 1
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -63,8 +67,8 @@ Describe "Find-InProject" {
             $files = $result.results | ForEach-Object { $_.file }
             $hasNodeModules = ($files | Where-Object { $_ -match 'node_modules' } | Measure-Object).Count
             $hasVendor = ($files | Where-Object { $_ -match 'vendor' } | Measure-Object).Count
-            $hasNodeModules | Should Be 0
-            $hasVendor | Should Be 0
+            $hasNodeModules | Should -Be 0
+            $hasVendor | Should -Be 0
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -75,7 +79,7 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject -Pattern "LOGIN" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.totalMatches | Should BeGreaterThan 0
+            $result.totalMatches | Should -BeGreaterThan 0
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -86,7 +90,7 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject -Pattern "LOGIN" -CaseSensitive -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.totalMatches | Should Be 0
+            $result.totalMatches | Should -Be 0
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -97,8 +101,8 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject -Pattern "zzz_no_match_zzz" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.totalMatches | Should Be 0
-            $result.fileCount | Should Be 0
+            $result.totalMatches | Should -Be 0
+            $result.fileCount | Should -Be 0
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -109,7 +113,7 @@ Describe "Find-InProject" {
         try {
             $raw = Find-InProject -Pattern "login" -Path $tempDir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.fileCount | Should Be 2
+            $result.fileCount | Should -Be 2
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }

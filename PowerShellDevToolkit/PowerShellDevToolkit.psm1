@@ -11,7 +11,7 @@ foreach ($file in @($Private + $Public)) {
     catch { Write-Error "Failed to import $($file.FullName): $_" }
 }
 
-# Aliases
+# Aliases — existing commands
 New-Alias -Name cssh      -Value Connect-SSH          -Force -Scope Global
 New-Alias -Name tunnel    -Value Connect-SSHTunnel    -Force -Scope Global
 New-Alias -Name tssh      -Value Connect-SSHTunnel    -Force -Scope Global
@@ -30,3 +30,30 @@ New-Alias -Name clip      -Value Copy-ToClipboard     -Force -Scope Global
 New-Alias -Name ai-rules  -Value New-AIRules          -Force -Scope Global
 New-Alias -Name rc        -Value Show-RecentCommands  -Force -Scope Global
 New-Alias -Name helpme    -Value Show-Help            -Force -Scope Global
+
+# Aliases — file & editor commands
+New-Alias -Name e         -Value Edit-File            -Force -Scope Global
+New-Alias -Name npp       -Value Edit-File            -Force -Scope Global
+New-Alias -Name touch     -Value Set-FileTimestamp    -Force -Scope Global
+New-Alias -Name open      -Value Open-Item            -Force -Scope Global
+
+# Aliases — directory commands
+New-Alias -Name ll        -Value Get-DirectoryListing -Force -Scope Global
+New-Alias -Name mkcd      -Value New-DirectoryAndEnter -Force -Scope Global
+New-Alias -Name temp      -Value Set-TempLocation     -Force -Scope Global
+
+# Aliases — utility commands
+New-Alias -Name which     -Value Get-CommandLocation  -Force -Scope Global
+New-Alias -Name sudo      -Value Invoke-Elevated      -Force -Scope Global
+New-Alias -Name reload    -Value Invoke-ProfileReload -Force -Scope Global
+New-Alias -Name grep      -Value Select-String        -Force -Scope Global
+
+# Aliases — network commands
+New-Alias -Name ip        -Value Get-IPAddress        -Force -Scope Global
+New-Alias -Name Flush-DNS -Value Clear-DNSCache       -Force -Scope Global
+
+# la — list all including hidden (wraps Get-DirectoryListing -Force)
+function global:la { Get-DirectoryListing -Force @args }
+
+# o. — open current directory in Explorer
+function global:o. { Open-Item . }

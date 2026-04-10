@@ -1,27 +1,29 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$moduleDir = Join-Path $repoRoot "PowerShellDevToolkit"
-Import-Module $moduleDir -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    $moduleDir = Join-Path $repoRoot "PowerShellDevToolkit"
+    Import-Module $moduleDir -Force
+}
 
 Describe "Get-ScriptConfig" {
     It "Should load config.json when present" {
         $config = Get-ScriptConfig
-        $config | Should Not BeNullOrEmpty
+        $config | Should -Not -BeNullOrEmpty
     }
 
     It "Should have ssh section with servers" {
         $config = Get-ScriptConfig
-        $config.ssh | Should Not BeNullOrEmpty
-        $config.ssh.servers | Should Not BeNullOrEmpty
+        $config.ssh | Should -Not -BeNullOrEmpty
+        $config.ssh.servers | Should -Not -BeNullOrEmpty
     }
 
     It "Should have databasePorts section" {
         $config = Get-ScriptConfig
-        $config.ssh.databasePorts | Should Not BeNullOrEmpty
+        $config.ssh.databasePorts | Should -Not -BeNullOrEmpty
     }
 
     It "Should have editor section" {
         $config = Get-ScriptConfig
-        $config.editor | Should Not BeNullOrEmpty
+        $config.editor | Should -Not -BeNullOrEmpty
     }
 
     It "Should handle malformed JSON gracefully" {
@@ -35,7 +37,7 @@ Describe "Get-ScriptConfig" {
             Copy-Item "$moduleDir\Public" "$tempDir\PowerShellDevToolkit\Public" -Recurse
             Set-Content "$tempDir\config.json" "NOT VALID JSON {{{{"
             $output = powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module '$tempDir\PowerShellDevToolkit' -Force; `$r = Get-ScriptConfig 2>`$null; if (`$null -eq `$r) { 'NULL' } else { 'NOTNULL' }"
-            ($output -match 'NULL') | Should Be $true
+            ($output -match 'NULL') | Should -Be $true
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
         }

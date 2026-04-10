@@ -1,5 +1,7 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "New-AIRules" {
     It "Should generate .airules file for PHP" {
@@ -8,10 +10,10 @@ Describe "New-AIRules" {
         try {
             $outFile = "$dir\.airules"
             New-AIRules -Language php -OutputPath $outFile 2>$null | Out-Null
-            (Test-Path $outFile) | Should Be $true
+            (Test-Path $outFile) | Should -Be $true
             $content = Get-Content $outFile -Raw
-            ($content -match 'PHP') | Should Be $true
-            ($content -match 'PSR-12') | Should Be $true
+            ($content -match 'PHP') | Should -Be $true
+            ($content -match 'PSR-12') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -23,10 +25,10 @@ Describe "New-AIRules" {
         try {
             $outFile = "$dir\.cursorrules"
             New-AIRules -Language react -RuleType Cursor -OutputPath $outFile 2>$null | Out-Null
-            (Test-Path $outFile) | Should Be $true
+            (Test-Path $outFile) | Should -Be $true
             $content = Get-Content $outFile -Raw
-            ($content -match 'Cursor AI Rules') | Should Be $true
-            ($content -match 'React') | Should Be $true
+            ($content -match 'Cursor AI Rules') | Should -Be $true
+            ($content -match 'React') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -38,9 +40,9 @@ Describe "New-AIRules" {
         try {
             $outFile = "$dir\.clauderules"
             New-AIRules -Language node -RuleType Claude -OutputPath $outFile 2>$null | Out-Null
-            (Test-Path $outFile) | Should Be $true
+            (Test-Path $outFile) | Should -Be $true
             $content = Get-Content $outFile -Raw
-            ($content -match 'Claude AI Rules') | Should Be $true
+            ($content -match 'Claude AI Rules') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -53,9 +55,9 @@ Describe "New-AIRules" {
             $outFile = "$dir\.airules"
             New-AIRules -Language perl -OutputPath $outFile 2>$null | Out-Null
             $content = Get-Content $outFile -Raw
-            ($content -match 'PowerShell Commands') | Should Be $true
-            ($content -match 'SSH') | Should Be $true
-            ($content -match 'cssh') | Should Be $true
+            ($content -match 'PowerShell Commands') | Should -Be $true
+            ($content -match 'SSH') | Should -Be $true
+            ($content -match 'cssh') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -70,9 +72,9 @@ Describe "New-AIRules" {
             Push-Location $dir
             New-AIRules -Auto -OutputPath $outFile 2>$null | Out-Null
             Pop-Location
-            (Test-Path $outFile) | Should Be $true
+            (Test-Path $outFile) | Should -Be $true
             $content = Get-Content $outFile -Raw
-            ($content -match 'React') | Should Be $true
+            ($content -match 'React') | Should -Be $true
         } finally {
             if ((Get-Location).Path -eq $dir) { Pop-Location }
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
@@ -87,8 +89,8 @@ Describe "New-AIRules" {
             Set-Content $outFile "# Existing content`n"
             New-AIRules -Language python -Append -OutputPath $outFile 2>$null | Out-Null
             $content = Get-Content $outFile -Raw
-            ($content -match 'Existing content') | Should Be $true
-            ($content -match 'Python') | Should Be $true
+            ($content -match 'Existing content') | Should -Be $true
+            ($content -match 'Python') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -102,7 +104,7 @@ Describe "New-AIRules" {
             foreach ($lang in $languages) {
                 $outFile = "$dir\$lang.airules"
                 New-AIRules -Language $lang -OutputPath $outFile 2>$null | Out-Null
-                (Test-Path $outFile) | Should Be $true
+                (Test-Path $outFile) | Should -Be $true
             }
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue

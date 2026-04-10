@@ -1,14 +1,12 @@
-<p align="center">
-  <img src="Powershell-dev-toolkit-logo.png" alt="PowerShell Dev Toolkit">
-</p>
+
 
 # PowerShell Dev Toolkit for Windows
 
 > A comprehensive collection of PowerShell productivity scripts for Windows developers. Streamline your development workflow with SSH tunneling, project management, AI integration, and much more.
 
-[![Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue?logo=windows)](https://www.microsoft.com/windows)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)](https://docs.microsoft.com/powershell/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[Windows](https://www.microsoft.com/windows)
+[PowerShell](https://docs.microsoft.com/powershell/)
+[License](LICENSE)
 
 ## Features
 
@@ -25,49 +23,47 @@
 ### Installation
 
 1. **Clone the repository**
-   ```powershell
+  ```powershell
    git clone https://github.com/joshuaevan/powershell-dev-toolkit.git
    cd powershell-dev-toolkit
-   ```
-
+  ```
 2. **Import the module** (one-time setup)
-   ```powershell
+  ```powershell
    # Option A: Run the setup script (recommended)
    .\Setup-Environment.ps1
-   
+
    # Option B: Add to your profile manually
    Add-Content $PROFILE 'Import-Module "C:\dev\powershell-dev-toolkit\PowerShellDevToolkit"'
-   ```
-
+  ```
 3. **Configure your settings**
-   ```powershell
+  ```powershell
    # Copy the example config
    Copy-Item config.example.json config.json
-   
+
    # Edit with your settings (servers, paths, etc.)
    notepad config.json
-   ```
-
+  ```
 4. **Reload your profile**
-   ```powershell
+  ```powershell
    . $PROFILE
    # or just type: reload
-   ```
-
+  ```
 5. **Test it out**
-   ```powershell
+  ```powershell
    helpme                                    # Show all commands
    Get-Command -Module PowerShellDevToolkit  # List all functions
-   ```
+  ```
 
 ## Requirements
 
 ### Essential
+
 - **Windows 10/11**
 - **PowerShell 5.1+** (comes with Windows)
 - **Git** - [Download](https://git-scm.com/download/win)
 
 ### Recommended
+
 - **WSL (Windows Subsystem for Linux)** - For better SSH support
   ```powershell
   wsl --install
@@ -75,6 +71,7 @@
 - **Notepad++** - For quick file editing - [Download](https://notepad-plus-plus.org/)
 
 ### Optional (Install as needed)
+
 - **Node.js & npm** - For JavaScript/Node projects - [Download](https://nodejs.org/)
 - **PHP** - For PHP/Laravel projects - [Download](https://windows.php.net/download/)
 - **Python** - For Python projects - [Download](https://www.python.org/downloads/)
@@ -83,6 +80,7 @@
 ## Key Commands
 
 ### SSH & Remote Access
+
 ```powershell
 cssh myserver                    # SSH to server
 tunnel myserver postgres         # PostgreSQL tunnel (port 5432)
@@ -90,6 +88,7 @@ tunnel myserver mysql 3307       # MySQL tunnel with custom local port
 ```
 
 ### Development
+
 ```powershell
 serve                            # Auto-detect & start dev server
 serve -Port 8080                 # Custom port
@@ -100,6 +99,7 @@ gs                               # Pretty git status
 ```
 
 ### Project Management
+
 ```powershell
 context                          # Generate project summary
 context -Copy                    # Copy to clipboard
@@ -108,6 +108,7 @@ useenv                           # Load .env file
 ```
 
 ### AI Integration
+
 ```powershell
 ai-rules php                     # Generate .airules for PHP (default)
 ai-rules laravel -RuleType Cursor   # Generate .cursorrules for Laravel
@@ -115,12 +116,27 @@ ai-rules react -RuleType Claude     # Generate .clauderules for React
 ai-rules -Auto                   # Auto-detect project type
 ```
 
-### Utilities
+### File & Directory
+
 ```powershell
-tail .\app.log                   # Watch log file
-tail .\app.log -Filter "error"   # Filter for errors
-rc                               # Browse command history
-rc -Interactive                  # Interactive history browser
+e .\file.ps1 -Line 42           # Edit in Notepad++
+touch .\newfile.txt              # Create file or update timestamp
+ll                               # Enhanced directory listing
+la                               # List all including hidden
+mkcd new-project                 # Create dir and cd into it
+open .\document.pdf              # Open with default app
+```
+
+### Utilities
+
+```powershell
+which node                       # Find command location
+sudo notepad hosts               # Run as administrator
+reload                           # Reload PowerShell profile
+grep "pattern" *.ps1             # Search text in files
+ip                               # Show IPv4 addresses
+tail .\app.log -Filter "error"   # Watch and filter logs
+rc -Interactive                  # Browse command history
 ```
 
 ## Full Command Reference
@@ -132,7 +148,7 @@ Run `helpme` to see all commands, or check the [complete documentation](docs/COM
 ### SSH Setup
 
 1. **Configure servers in `config.json`:**
-   ```json
+  ```json
    {
      "ssh": {
        "credentialFile": "ssh-credentials.xml",
@@ -149,31 +165,30 @@ Run `helpme` to see all commands, or check the [complete documentation](docs/COM
        }
      }
    }
-   ```
-
+  ```
 2. **Store SSH credentials (password auth):**
-   ```powershell
+  ```powershell
    # Create creds directory
    New-Item -Path ".\creds" -ItemType Directory -Force
-   
+
    # Store encrypted credentials
    $cred = Get-Credential -UserName 'your-ssh-username'
    $cred | Export-Clixml '.\creds\ssh-credentials.xml'
-   ```
-
+  ```
 3. **Or use key file authentication (.pem):**
-   ```powershell
+  ```powershell
    # Copy your key file to creds directory
    Copy-Item 'C:\path\to\your-key.pem' '.\creds\your-key.pem'
-   
+
    # Still need credential file for username
    $cred = Get-Credential -UserName 'ec2-user'
    $cred | Export-Clixml '.\creds\ssh-credentials.xml'
-   ```
+  ```
 
 ### Editor Integration
 
 Configure your preferred editor in `config.json`:
+
 ```json
 {
   "editor": {
@@ -207,6 +222,7 @@ PowerShellDevToolkit/
 ### Extending SSH Servers
 
 Edit `config.json` to add more servers:
+
 ```json
 "servers": {
   "prod": {
@@ -226,6 +242,16 @@ Edit `config.json` to add more servers:
 ```
 
 > **Note:** For key file auth, place `.pem` files in `.\creds\` and set `keyFile` in config.
+
+## Testing
+
+Run the full test suite locally with one command:
+
+```powershell
+.\Invoke-Tests.ps1
+```
+
+Tests also run automatically on every push and pull request via GitHub Actions CI.
 
 ## Documentation
 
@@ -247,16 +273,19 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## Troubleshooting
 
 ### Scripts won't execute
+
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ### SSH commands not working
+
 1. Check if WSL is installed: `wsl --version`
 2. If not, install Posh-SSH: `Install-Module -Name Posh-SSH`
 3. Verify credentials file exists: `Test-Path .\creds\ssh-credentials.xml`
 
 ### Missing commands after setup
+
 ```powershell
 # Reload your profile
 . $PROFILE

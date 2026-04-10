@@ -1,5 +1,7 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "Copy-ToClipboard" {
     It "Should copy file contents to clipboard" {
@@ -9,7 +11,7 @@ Describe "Copy-ToClipboard" {
             Set-Content "$dir\test.txt" "clipboard test content"
             Copy-ToClipboard -Path "$dir\test.txt" 2>$null | Out-Null
             $clip = Get-Clipboard
-            ($clip -match 'clipboard test content') | Should Be $true
+            ($clip -match 'clipboard test content') | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -20,7 +22,7 @@ Describe "Copy-ToClipboard" {
         try {
             Copy-ToClipboard -Pwd 2>$null | Out-Null
             $clip = Get-Clipboard
-            $clip | Should Be (Get-Location).Path
+            $clip | Should -Be (Get-Location).Path
         } finally {
             Set-Location $before
         }
@@ -33,7 +35,7 @@ Describe "Copy-ToClipboard" {
             Set-Content "$dir\test.txt" "content"
             Copy-ToClipboard -Path "$dir\test.txt" -PathOnly 2>$null | Out-Null
             $clip = Get-Clipboard
-            ($clip -like "*test.txt") | Should Be $true
+            ($clip -like "*test.txt") | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -41,11 +43,11 @@ Describe "Copy-ToClipboard" {
 
     It "Should show error for missing file" {
         $output = Copy-ToClipboard -Path "C:\nonexistent_file_xyz.txt" *>&1 | Out-String
-        ($output -match 'not found') | Should Be $true
+        ($output -match 'not found') | Should -Be $true
     }
 
     It "Should show usage with no arguments" {
         $output = Copy-ToClipboard *>&1 | Out-String
-        ($output -match 'Usage') | Should Be $true
+        ($output -match 'Usage') | Should -Be $true
     }
 }

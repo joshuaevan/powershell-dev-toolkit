@@ -1,5 +1,7 @@
-$repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+BeforeAll {
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+    Import-Module (Join-Path $repoRoot "PowerShellDevToolkit") -Force
+}
 
 Describe "Get-ProjectInfo" {
     It "Should detect Node.js project" {
@@ -10,9 +12,9 @@ Describe "Get-ProjectInfo" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Node.js'
-            $result.name | Should Be 'test-app'
-            $result.version | Should Be '1.0.0'
+            $result.type | Should -Be 'Node.js'
+            $result.name | Should -Be 'test-app'
+            $result.version | Should -Be '1.0.0'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -26,8 +28,8 @@ Describe "Get-ProjectInfo" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Node.js'
-            $result.framework | Should Be 'React'
+            $result.type | Should -Be 'Node.js'
+            $result.framework | Should -Be 'React'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -41,7 +43,7 @@ Describe "Get-ProjectInfo" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.framework | Should Be 'Next.js'
+            $result.framework | Should -Be 'Next.js'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -55,7 +57,7 @@ Describe "Get-ProjectInfo" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.framework | Should Be 'Vue'
+            $result.framework | Should -Be 'Vue'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -69,7 +71,7 @@ Describe "Get-ProjectInfo" {
                 ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.framework | Should Be 'Express'
+            $result.framework | Should -Be 'Express'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -84,8 +86,8 @@ Describe "Get-ProjectInfo" {
             Set-Content "$dir\artisan" "#!/usr/bin/env php"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'PHP'
-            $result.framework | Should Be 'Laravel'
+            $result.type | Should -Be 'PHP'
+            $result.framework | Should -Be 'Laravel'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -98,8 +100,8 @@ Describe "Get-ProjectInfo" {
             Set-Content "$dir\cpanfile" "requires 'Mojolicious';`nrequires 'DBI';"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Perl'
-            $result.dependencies | Should Be 2
+            $result.type | Should -Be 'Perl'
+            $result.dependencies | Should -Be 2
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -112,8 +114,8 @@ Describe "Get-ProjectInfo" {
             Set-Content "$dir\requirements.txt" "flask==2.0`nrequests==2.28`n"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Python'
-            $result.dependencies | Should Be 2
+            $result.type | Should -Be 'Python'
+            $result.dependencies | Should -Be 2
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -127,7 +129,7 @@ Describe "Get-ProjectInfo" {
             Set-Content "$dir\manage.py" "#!/usr/bin/env python"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.framework | Should Be 'Django'
+            $result.framework | Should -Be 'Django'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -139,7 +141,7 @@ Describe "Get-ProjectInfo" {
         try {
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.type | Should Be 'Unknown'
+            $result.type | Should -Be 'Unknown'
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -152,9 +154,9 @@ Describe "Get-ProjectInfo" {
             @{ name = "test"; dependencies = @{} } | ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            ($null -ne $result.hasGit) | Should Be $true
-            ($null -ne $result.hasDocker) | Should Be $true
-            ($null -ne $result.hasTests) | Should Be $true
+            ($null -ne $result.hasGit) | Should -Be $true
+            ($null -ne $result.hasDocker) | Should -Be $true
+            ($null -ne $result.hasTests) | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -171,8 +173,8 @@ Describe "Get-ProjectInfo" {
             } | ConvertTo-Json | Set-Content "$dir\package.json"
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.dependencies | Should Be 3
-            $result.devDependencies | Should Be 2
+            $result.dependencies | Should -Be 3
+            $result.devDependencies | Should -Be 2
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
@@ -186,7 +188,7 @@ Describe "Get-ProjectInfo" {
             New-Item -Path "$dir\tests" -ItemType Directory -Force | Out-Null
             $raw = Get-ProjectInfo -Path $dir -AsJson 2>$null
             $result = $raw | ConvertFrom-Json
-            $result.hasTests | Should Be $true
+            $result.hasTests | Should -Be $true
         } finally {
             Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
         }
