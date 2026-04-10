@@ -2,27 +2,42 @@ BeforeAll {
     $repoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
     $moduleDir = Join-Path $repoRoot "PowerShellDevToolkit"
     Import-Module $moduleDir -Force
+
+    $configPath = Join-Path $repoRoot "config.json"
+    $examplePath = Join-Path $repoRoot "config.example.json"
+    $script:hadConfig = Test-Path $configPath
+    if (-not $script:hadConfig -and (Test-Path $examplePath)) {
+        Copy-Item $examplePath $configPath
+        $script:createdConfig = $true
+    }
+}
+
+AfterAll {
+    if ($script:createdConfig) {
+        $configPath = Join-Path $repoRoot "config.json"
+        Remove-Item $configPath -ErrorAction SilentlyContinue
+    }
 }
 
 Describe "Get-ScriptConfig" {
     It "Should load config.json when present" {
-        $config = Get-ScriptConfig
+        $config = & (Get-Module PowerShellDevToolkit) { Get-ScriptConfig }
         $config | Should -Not -BeNullOrEmpty
     }
 
     It "Should have ssh section with servers" {
-        $config = Get-ScriptConfig
+        $config = & (Get-Module PowerShellDevToolkit) { Get-ScriptConfig }
         $config.ssh | Should -Not -BeNullOrEmpty
         $config.ssh.servers | Should -Not -BeNullOrEmpty
     }
 
     It "Should have databasePorts section" {
-        $config = Get-ScriptConfig
+        $config = & (Get-Module PowerShellDevToolkit) { Get-ScriptConfig }
         $config.ssh.databasePorts | Should -Not -BeNullOrEmpty
     }
 
     It "Should have editor section" {
-        $config = Get-ScriptConfig
+        $config = & (Get-Module PowerShellDevToolkit) { Get-ScriptConfig }
         $config.editor | Should -Not -BeNullOrEmpty
     }
 
@@ -36,7 +51,7 @@ Describe "Get-ScriptConfig" {
             Copy-Item "$moduleDir\Private" "$tempDir\PowerShellDevToolkit\Private" -Recurse
             Copy-Item "$moduleDir\Public" "$tempDir\PowerShellDevToolkit\Public" -Recurse
             Set-Content "$tempDir\config.json" "NOT VALID JSON {{{{"
-            $output = powershell -NoProfile -ExecutionPolicy Bypass -Command "Import-Module '$tempDir\PowerShellDevToolkit' -Force; `$r = Get-ScriptConfig 2>`$null; if (`$null -eq `$r) { 'NULL' } else { 'NOTNULL' }"
+            $output = pwsh -NoProfile -Command "Import-Module '$tempDir\PowerShellDevToolkit' -Force; `$r = & (Get-Module PowerShellDevToolkit) { Get-ScriptConfig } 2>`$null; if (`$null -eq `$r) { 'NULL' } else { 'NOTNULL' }"
             ($output -match 'NULL') | Should -Be $true
         } finally {
             Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue

@@ -23,7 +23,7 @@ Describe "New-DirectoryAndEnter" {
         $before = Get-Location
         try {
             New-DirectoryAndEnter $target
-            (Get-Location).Path | Should -Be (Resolve-Path $target).Path
+            (Get-Item (Get-Location).Path).FullName | Should -Be (Get-Item $target).FullName
         } finally {
             Set-Location $before
             Remove-Item $parent -Recurse -Force -ErrorAction SilentlyContinue
@@ -37,7 +37,7 @@ Describe "New-DirectoryAndEnter" {
         try {
             New-DirectoryAndEnter $target
             (Test-Path $target) | Should -Be $true
-            (Get-Location).Path | Should -Be (Resolve-Path $target).Path
+            (Get-Item (Get-Location).Path).FullName | Should -Be (Get-Item $target).FullName
         } finally {
             Set-Location $before
             Remove-Item $parent -Recurse -Force -ErrorAction SilentlyContinue

@@ -20,8 +20,9 @@ Describe "Edit-File" {
     }
 
     It "Should report an error for a non-existent path" {
-        $output = Edit-File "C:\this_path_does_not_exist_pester_xyz" *>&1 | Out-String
-        ($output -match 'not found|cannot find|does not exist') | Should -Be $true
+        Edit-File "C:\this_path_does_not_exist_pester_xyz" -ErrorAction SilentlyContinue -ErrorVariable err
+        ($err.Count -gt 0) | Should -Be $true
+        ($err[0].Exception.Message -match 'not found|cannot find|does not exist') | Should -Be $true
     }
 
     It "Should expose -Path, -Line, and -Column parameters" {

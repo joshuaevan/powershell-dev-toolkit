@@ -8,8 +8,9 @@ Describe "Set-TempLocation" {
         $before = Get-Location
         try {
             Set-TempLocation
-            $expected = (Resolve-Path $env:TEMP).Path
-            (Get-Location).Path | Should -Be $expected
+            $actual = (Get-Item (Get-Location).Path).FullName
+            $expected = (Get-Item $env:TEMP).FullName
+            $actual | Should -Be $expected
         } finally {
             Set-Location $before
         }

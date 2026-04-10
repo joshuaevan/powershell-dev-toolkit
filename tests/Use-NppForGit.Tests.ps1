@@ -31,8 +31,9 @@ Describe "Use-NppForGit" {
 
         try {
             '{"editor":{"notepadPlusPlus":"C:\\does_not_exist\\notepad++.exe"}}' | Set-Content $configPath
-            $output = Use-NppForGit *>&1 | Out-String
-            ($output -match 'not found|cannot find|does not exist|failed') | Should -Be $true
+            Use-NppForGit -ErrorAction SilentlyContinue -ErrorVariable err
+            ($err.Count -gt 0) | Should -Be $true
+            ($err[0].Exception.Message -match 'not found|cannot find|does not exist') | Should -Be $true
         } finally {
             if ($savedConfig) {
                 Set-Content $configPath $savedConfig
