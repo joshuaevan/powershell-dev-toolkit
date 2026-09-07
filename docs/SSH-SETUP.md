@@ -20,12 +20,13 @@ You need **one** of the following:
 
 ### 1. Create Configuration File
 
-Copy the example config and edit it:
-
 ```powershell
-Copy-Item config.example.json config.json
-notepad config.json
+Initialize-Toolkit
 ```
+
+This creates `config.json` (from the bundled example) and the `creds` folder in
+the toolkit data folder, then opens the config in your editor. Run `helpme` at
+any time to see where the config lives.
 
 ### 2. Configure Your Servers
 
@@ -68,16 +69,12 @@ Edit `config.json` with your server details:
 
 ### 3. Store SSH Credentials
 
-Create encrypted credentials (Windows DPAPI - only works on your machine):
-
 ```powershell
-# Create creds directory
-New-Item -Path ".\creds" -ItemType Directory -Force
-
-# Store your credentials
-$cred = Get-Credential -UserName 'your-ssh-username'
-$cred | Export-Clixml '.\creds\ssh-credentials.xml'
+New-SSHCredential -UserName 'your-ssh-username'
 ```
+
+You are prompted for the password. The file is saved as
+`creds\ssh-credentials.xml` in the toolkit data folder.
 
 > **Security Note:** The credential file is encrypted using Windows DPAPI and can only be decrypted by your Windows user account on this machine.
 
@@ -143,7 +140,7 @@ Specify a custom credential file name:
 }
 ```
 
-The file is always stored in the `creds` subdirectory.
+The file is always stored in the `creds` folder of the toolkit data folder (repo root for git clones, `%LOCALAPPDATA%\PowerShellDevToolkit` for Gallery installs, or `PSDT_HOME`).
 
 ---
 
@@ -210,13 +207,8 @@ For different servers with different credentials:
 ### 1. Create Multiple Credential Files
 
 ```powershell
-# Production credentials
-$prodCred = Get-Credential -UserName 'prod-user'
-$prodCred | Export-Clixml '.\creds\prod-credentials.xml'
-
-# Development credentials
-$devCred = Get-Credential -UserName 'dev-user'
-$devCred | Export-Clixml '.\creds\dev-credentials.xml'
+New-SSHCredential -UserName 'prod-user' -FileName 'prod-credentials.xml'
+New-SSHCredential -UserName 'dev-user'  -FileName 'dev-credentials.xml'
 ```
 
 ### 2. Switch Between Credentials
@@ -269,8 +261,9 @@ For key-based authentication (common with AWS, cloud providers):
 ### 1. Place Key File in Creds Directory
 
 ```powershell
-# Copy your .pem file to the creds directory
-Copy-Item 'C:\Downloads\my-server-key.pem' '.\creds\my-server-key.pem'
+# Copy your .pem file into the creds folder (path shown by Initialize-Toolkit / helpme)
+Copy-Item 'C:\Downloads\my-server-key.pem' "$env:LOCALAPPDATA\PowerShellDevToolkit\creds\"   # Gallery install
+Copy-Item 'C:\Downloads\my-server-key.pem' '.\creds\'                                        # git clone (from repo root)
 ```
 
 ### 2. Configure Server with Key File
@@ -289,14 +282,14 @@ Add `keyFile` to your server config:
 
 ### 3. Create Credential File for Username
 
-Key file auth still needs a username (stored in credential file):
+Key file auth still needs a username. Either add `"user": "ec2-user"` to the
+server entry in `config.json`, or store one with:
 
 ```powershell
-$cred = Get-Credential -UserName 'ec2-user'
-$cred | Export-Clixml '.\creds\ssh-credentials.xml'
+New-SSHCredential -UserName 'ec2-user'
 ```
 
-> **Tip:** Password field can be anything when using key files - only username is used.
+> **Tip:** The password can be anything when using key files - only the username is used.
 
 ### 4. Connect Using Key File
 
@@ -327,7 +320,7 @@ wsl bash -c "ssh-copy-id username@server.example.com"
 
 ```powershell
 # Copy private key to creds directory
-wsl bash -c "cat ~/.ssh/id_ed25519" | Set-Content '.\creds\my-key.pem'
+wsl bash -c "cat ~/.ssh/id_ed25519" | Set-Content "$env:LOCALAPPDATA\PowerShellDevToolkit\creds\my-key.pem"   # or .\creds\my-key.pem for a git clone
 ```
 
 Then configure `keyFile` in your server config as shown above.

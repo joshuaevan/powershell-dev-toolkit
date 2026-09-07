@@ -4,7 +4,7 @@ BeforeAll {
     Import-Module $moduleDir -Force
 
     $configPath = Join-Path $repoRoot "config.json"
-    $examplePath = Join-Path $repoRoot "config.example.json"
+    $examplePath = Join-Path $moduleDir "config.example.json"
     $script:hadConfig = Test-Path $configPath
     if (-not $script:hadConfig -and (Test-Path $examplePath)) {
         Copy-Item $examplePath $configPath

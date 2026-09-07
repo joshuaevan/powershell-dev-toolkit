@@ -16,7 +16,7 @@ function Edit-Hosts {
     $hostsPath = "$env:SystemRoot\System32\drivers\etc\hosts"
 
     $nppExe = $null
-    $config = Get-ScriptConfig -ErrorAction SilentlyContinue
+    $config = Get-ScriptConfig -Quiet
     if ($config -and $config.editor -and $config.editor.notepadPlusPlus) {
         if (Test-Path $config.editor.notepadPlusPlus) {
             $nppExe = $config.editor.notepadPlusPlus

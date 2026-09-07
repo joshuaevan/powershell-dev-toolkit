@@ -23,44 +23,7 @@ function Connect-SSH {
         return
     }
 
-    $servers = @{}
-    $serverKeyFiles = @{}
-    $serverUsers = @{}
-    if ($config.ssh.servers) {
-        foreach ($key in $config.ssh.servers.PSObject.Properties.Name) {
-            $servers[$key] = $config.ssh.servers.$key.hostname
-            if ($config.ssh.servers.$key.keyFile) {
-                $serverKeyFiles[$key] = $config.ssh.servers.$key.keyFile
-            }
-            if ($config.ssh.servers.$key.user) {
-                $serverUsers[$key] = $config.ssh.servers.$key.user
-            }
-        }
-    }
-
-    $keyFile = $null
-    $configUser = $null
-    if ($servers.ContainsKey($Target)) {
-        $Server = $servers[$Target]
-        if ($serverKeyFiles.ContainsKey($Target)) {
-            $keyFile = $serverKeyFiles[$Target]
-        }
-        if ($serverUsers.ContainsKey($Target)) {
-            $configUser = $serverUsers[$Target]
-        }
-    }
-    else {
-        $Server = $Target
-    }
-
-    $useWSL = $false
-    $wsl = Get-Command wsl -ErrorAction SilentlyContinue
-    if ($wsl) {
-        $wslCheck = wsl echo "ok" 2>&1
-        if ($wslCheck -eq "ok") {
-            $useWSL = $true
-        }
-    }
+    $useWSL = Test-WslAvailable
     if (-not $useWSL) {
         try {
             Import-Module Posh-SSH -ErrorAction Stop
@@ -73,62 +36,15 @@ function Connect-SSH {
         }
     }
 
-    $credsDir = Join-Path $script:ToolkitRoot "creds"
+    $ssh = Resolve-SSHTarget -Target $Target -Config $config
+    if (-not $ssh) { return }
 
-    $keyFilePath = $null
-    if ($keyFile) {
-        if ([System.IO.Path]::IsPathRooted($keyFile)) {
-            $keyFilePath = $keyFile
-        }
-        else {
-            $keyFilePath = Join-Path $credsDir $keyFile
-        }
-        if (-not (Test-Path $keyFilePath)) {
-            Write-Host "Key file not found: $keyFilePath" -ForegroundColor Red
-            return
-        }
-    }
-
-    $username = $null
-    $password = $null
-    $cred = $null
-
-    if (-not $keyFile) {
-        $credFile = $config.ssh.credentialFile
-        if (-not $credFile) {
-            $credFile = "ssh-credentials.xml"
-        }
-        $credPath = Join-Path $credsDir $credFile
-
-        if (-not (Test-Path $credPath)) {
-            Write-Host "Credential file not found: $credPath" -ForegroundColor Red
-            return
-        }
-
-        $cred = Import-Clixml $credPath
-        $username = $cred.UserName
-        $password = $cred.GetNetworkCredential().Password
-    }
-    else {
-        if ($configUser) {
-            $username = $configUser
-        }
-        else {
-            $credFile = $config.ssh.credentialFile
-            if ($credFile) {
-                $credPath = Join-Path $credsDir $credFile
-                if (Test-Path $credPath) {
-                    $cred = Import-Clixml $credPath
-                    $username = $cred.UserName
-                }
-            }
-        }
-
-        if (-not $username) {
-            Write-Host "Username required. Add 'user' to server config in config.json" -ForegroundColor Red
-            return
-        }
-    }
+    $Server      = $ssh.Server
+    $username    = $ssh.UserName
+    $password    = $ssh.Password
+    $cred        = $ssh.Credential
+    $keyFilePath = $ssh.KeyFilePath
+    $keyFile     = [bool]$keyFilePath
 
     if ($keyFile) {
         $winSsh = Get-Command ssh.exe -ErrorAction SilentlyContinue
