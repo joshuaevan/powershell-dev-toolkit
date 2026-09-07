@@ -34,4 +34,11 @@ Describe "helpme" {
         ($output -match 'ai-rules') | Should -Be $true
         ($output -match 'context') | Should -Be $true
     }
+
+    It "Should -Contain toolkit setup commands and the config path" {
+        $output = Show-Help *>&1 | Out-String
+        ($output -match 'Initialize-Toolkit') | Should -Be $true
+        ($output -match 'New-SSHCredential') | Should -Be $true
+        ($output -match 'config\.json') | Should -Be $true
+    }
 }

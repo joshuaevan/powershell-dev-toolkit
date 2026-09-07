@@ -73,7 +73,8 @@ function Show-Help {
         Write-Option "  Ex: tunnel myserver | tunnel myserver 3306 | tunnel myserver postgres 5433"
         Write-Option "  DB shortcuts: postgres, mysql, mssql, mongodb, redis, oracle"
         Write-Option "  Supports key files (.pem) - add keyFile to server config"
-        Write-Option "  Configure servers in config.json (copy from config.example.json)"
+        Write-Option "  Configure servers in config.json (run Initialize-Toolkit to create it)"
+        Write-Option "  Press Tab after 'cssh ' or 'tunnel ' to complete server aliases"
 
         Write-Header "AI INTEGRATION COMMANDS"
         Write-Cmd "ai-rules <type> [-RuleType <type>]" "Generate AI rules files (Generic/Cursor/Claude)"
@@ -129,11 +130,15 @@ function Show-Help {
         Write-Option "  art tinker                 # Interactive REPL"
 
         Write-Header "TOOLKIT MANAGEMENT"
-        Write-Cmd "Update-Toolkit" "Self-update the toolkit from git"
-        Write-Option "  Update-Toolkit              # Pull latest and reload"
+        Write-Cmd "Initialize-Toolkit [-Force] [-NoOpen]" "First-run setup: create config.json and the creds folder"
+        Write-Cmd "New-SSHCredential [-UserName <name>] [-FileName <file>]" "Store SSH username/password (DPAPI-encrypted)"
+        Write-Cmd "Update-Toolkit" "Self-update from git or the PowerShell Gallery"
+        Write-Option "  Update-Toolkit              # Update and reload"
         Write-Option "  Update-Toolkit -CheckOnly   # Check without applying"
         Write-Option "  Update-Toolkit -Force       # Skip confirmation prompt"
         Write-Option "  Auto-checks on startup (set toolkit.updateCheckDays in config.json)"
+        $toolkitPaths = Get-ToolkitPaths
+        Write-Option "  Install: $($toolkitPaths.InstallType)   Config: $($toolkitPaths.ConfigPath)"
 
         Write-Header "KEYBOARD SHORTCUTS"
         Write-Cmd "$([char]0x2191) / $([char]0x2193)" "Search history by prefix"

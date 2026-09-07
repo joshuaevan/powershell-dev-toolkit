@@ -11,12 +11,12 @@
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.0' })) {
-    Write-Host "Pester 5+ not found. Installing from PSGallery..." -ForegroundColor Yellow
-    Install-Module -Name Pester -MinimumVersion 5.0.0 -Force -Scope CurrentUser -SkipPublisherCheck
+if (-not (Get-Module -ListAvailable -Name Pester | Where-Object { $_.Version -ge '5.0' -and $_.Version -lt '6.0' })) {
+    Write-Host "Pester 5.x not found. Installing from PSGallery..." -ForegroundColor Yellow
+    Install-Module -Name Pester -MinimumVersion 5.0.0 -MaximumVersion 5.99.99 -Force -Scope CurrentUser -SkipPublisherCheck
 }
 
-Import-Module Pester -MinimumVersion 5.0.0
+Import-Module Pester -MinimumVersion 5.0.0 -MaximumVersion 5.99.99 -Force
 
 $config = New-PesterConfiguration
 $config.Run.Path         = Join-Path $PSScriptRoot 'tests'

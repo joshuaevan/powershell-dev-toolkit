@@ -4,53 +4,42 @@ function Get-ScriptConfig {
         Load configuration for PowerShell Dev Toolkit.
 
     .DESCRIPTION
-        Loads configuration from config.json relative to the toolkit root.
-        If config.json doesn't exist, prompts to create from example.
+        Loads config.json from the toolkit data folder (see Get-ToolkitPaths).
+        Returns $null when the file is missing or cannot be parsed.
+
+    .PARAMETER Quiet
+        Suppress all host output. Use from tab completers and from commands
+        that only need the config if it happens to exist.
 
     .EXAMPLE
         $config = Get-ScriptConfig
         $config.ssh.servers
     #>
     [CmdletBinding()]
-    param()
+    param(
+        [switch]$Quiet
+    )
 
-    $configPath = Join-Path $script:ToolkitRoot "config.json"
-    $examplePath = Join-Path $script:ToolkitRoot "config.example.json"
+    $configPath = (Get-ToolkitPaths).ConfigPath
 
     if (-not (Test-Path $configPath)) {
-        Write-Host ""
-        Write-Host "Configuration file not found!" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "To set up your configuration:" -ForegroundColor Cyan
-        Write-Host "  1. Copy config.example.json to config.json" -ForegroundColor White
-        Write-Host "  2. Edit config.json with your settings" -ForegroundColor White
-        Write-Host ""
-
-        if (Test-Path $examplePath) {
-            Write-Host "Would you like to create config.json from the example now? (Y/N): " -NoNewline -ForegroundColor Yellow
-            $response = Read-Host
-
-            if ($response -eq 'Y' -or $response -eq 'y') {
-                Copy-Item $examplePath $configPath
-                Write-Host ""
-                Write-Host "Created config.json - please edit it with your settings." -ForegroundColor Green
-                Write-Host "Location: $configPath" -ForegroundColor Gray
-                Write-Host ""
-
-                if (Get-Command notepad -ErrorAction SilentlyContinue) {
-                    Start-Process notepad $configPath
-                }
-            }
+        if (-not $Quiet) {
+            Write-Host ""
+            Write-Host "Configuration file not found: $configPath" -ForegroundColor Yellow
+            Write-Host "Run " -NoNewline -ForegroundColor Cyan
+            Write-Host "Initialize-Toolkit" -NoNewline -ForegroundColor Yellow
+            Write-Host " to create it." -ForegroundColor Cyan
+            Write-Host ""
         }
-
         return $null
     }
 
     try {
-        $config = Get-Content $configPath -Raw | ConvertFrom-Json
-        return $config
+        return (Get-Content $configPath -Raw | ConvertFrom-Json)
     } catch {
-        Write-Host "Error loading config.json: $($_.Exception.Message)" -ForegroundColor Red
+        if (-not $Quiet) {
+            Write-Host "Error loading config.json ($configPath): $($_.Exception.Message)" -ForegroundColor Red
+        }
         return $null
     }
 }

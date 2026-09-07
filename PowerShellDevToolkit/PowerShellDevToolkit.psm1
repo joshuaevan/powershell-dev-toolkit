@@ -1,5 +1,7 @@
 # PowerShellDevToolkit Root Module
-# Repo root is one level above the module folder
+$script:ModuleRoot  = $PSScriptRoot
+# Repo root is one level above the module folder (only meaningful for git installs;
+# used for repo-only assets such as the ASCII logo). User data paths come from Get-ToolkitPaths.
 $script:ToolkitRoot = Split-Path $PSScriptRoot
 
 # Dot-source private functions first, then public
@@ -10,6 +12,9 @@ foreach ($file in @($Private + $Public)) {
     try { . $file.FullName }
     catch { Write-Error "Failed to import $($file.FullName): $_" }
 }
+
+# Tab completion for SSH server aliases and database port names
+Register-ToolkitArgumentCompleters
 
 # Aliases — existing commands
 New-Alias -Name cssh      -Value Connect-SSH          -Force -Scope Global
@@ -60,4 +65,6 @@ function global:la { Get-DirectoryListing -Force @args }
 function global:o. { Open-Item . }
 
 # Startup update check (runs once per configured interval, silent on error)
-if ([Environment]::UserInteractive) { try { Test-ToolkitUpdate } catch { } }
+if ([Environment]::UserInteractive -and [string]::IsNullOrEmpty($env:PSDT_SKIP_UPDATE_CHECK)) {
+    try { Test-ToolkitUpdate } catch { }
+}

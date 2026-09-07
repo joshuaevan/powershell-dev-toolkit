@@ -13,7 +13,7 @@
 | [SSH](#ssh-commands) | `cssh`, `tunnel`, `tssh` |
 | [AI Integration](#ai-integration-commands) | `ai-rules`, `context` |
 | [Development](#development-commands) | `port`, `proj`, `serve`, `gs`, `search`, `http`, `services`, `useenv`, `tail`, `clip`, `art` |
-| [Toolkit Management](#toolkit-management) | `Update-Toolkit` |
+| [Toolkit Management](#toolkit-management) | `Initialize-Toolkit`, `New-SSHCredential`, `Update-Toolkit` |
 
 ---
 
@@ -202,6 +202,10 @@ tunnel myserver 5432 5433         # Custom remote and local ports
 tunnel myserver 3306 -RemoteHost db.internal  # Tunnel to internal host
 ```
 
+**Tab completion:** press Tab after `cssh ` or `tunnel ` to cycle through the
+server aliases in `config.json`. After the server on `tunnel`, Tab cycles the
+database shortcut names.
+
 **Database Shortcuts:**
 | Shortcut | Port |
 |----------|------|
@@ -365,11 +369,41 @@ art cache:clear                   # Clear application cache
 
 ## Toolkit Management
 
-### `Update-Toolkit`
-Self-update the toolkit by pulling the latest changes from git.
+### `Initialize-Toolkit`
+First-run setup. Creates the data folder, copies `config.example.json` to
+`config.json` (if missing), creates the `creds` folder and opens the config in
+your editor. Works for git-clone and PowerShell Gallery installs.
 
 ```powershell
-Update-Toolkit                    # Pull latest, show changes, reload module
+Initialize-Toolkit                # Create config + creds folder, open config
+Initialize-Toolkit -NoOpen        # Do not launch the editor
+Initialize-Toolkit -Force         # Replace an existing config.json with the example
+```
+
+**Where files live:**
+| Install type | Data folder |
+|--------------|-------------|
+| Git clone | repo root |
+| PowerShell Gallery | `%LOCALAPPDATA%\PowerShellDevToolkit` |
+| `PSDT_HOME` set | `$env:PSDT_HOME` |
+
+### `New-SSHCredential`
+Store SSH credentials for `cssh` and `tunnel`. The file is encrypted with Windows
+DPAPI and only readable by your account on this machine.
+
+```powershell
+New-SSHCredential                              # Prompt, save as ssh-credentials.xml
+New-SSHCredential -UserName deploy             # Pre-fill the username
+New-SSHCredential -FileName prod-creds.xml     # Custom file name (see ssh.credentialFile)
+New-SSHCredential -Force                       # Overwrite an existing file
+```
+
+### `Update-Toolkit`
+Self-update the toolkit. Git clones pull from the remote; Gallery installs check
+the PowerShell Gallery and update with `Update-Module` / `Update-PSResource`.
+
+```powershell
+Update-Toolkit                    # Update, show changes, reload module
 Update-Toolkit -CheckOnly         # Check for updates without applying
 Update-Toolkit -Force             # Skip confirmation prompt
 ```
@@ -388,7 +422,8 @@ The toolkit checks for available updates once per day on shell startup (configur
 }
 ```
 
-Set to `0` to disable automatic checks entirely.
+Set to `0` to disable automatic checks entirely, or set the environment variable
+`PSDT_SKIP_UPDATE_CHECK=1`.
 
 ---
 

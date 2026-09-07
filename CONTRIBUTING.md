@@ -108,7 +108,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 - **Never hardcode user-specific information**
 - **Use `config.json` for user settings**
 - **Provide sensible defaults**
-- **Document all configuration options** in `config.example.json`
+- **Document all configuration options** in `PowerShellDevToolkit\config.example.json`
 
 ### Security
 
@@ -122,7 +122,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 - Update `README.md` if you add new features
 - Add examples to help text
 - Document configuration options
-- Update `helpme.ps1` for new commands
+- Update `Show-Help` (`Public\Show-Help.ps1`) and `docs/COMMANDS.md` for new commands, and add a `CHANGELOG.md` entry
 
 ## Testing
 
@@ -162,16 +162,19 @@ Also test manually:
 powershell-dev-toolkit/
 ├── PowerShellDevToolkit/           # The PS module
 │   ├── PowerShellDevToolkit.psd1   # Module manifest (version, exports)
-│   ├── PowerShellDevToolkit.psm1   # Root module (auto-loader, aliases)
+│   ├── PowerShellDevToolkit.psm1   # Root module (auto-loader, aliases, completers)
+│   ├── config.example.json         # Configuration template (ships in the Gallery package)
 │   ├── Public/                     # Exported functions (one per file)
 │   │   ├── Connect-SSH.ps1
-│   │   ├── Get-GitQuick.ps1
+│   │   ├── Initialize-Toolkit.ps1
 │   │   └── ...
 │   └── Private/                    # Internal helpers (not exported)
-│       └── Get-ScriptConfig.ps1
+│       ├── Get-ToolkitPaths.ps1    # Install type + data folder resolution
+│       ├── Get-ScriptConfig.ps1
+│       ├── Resolve-SSHTarget.ps1
+│       └── ...
 ├── tests/                          # Pester tests
 ├── docs/                           # Documentation
-├── config.example.json             # Configuration template
 ├── Setup-Environment.ps1           # Bootstrap / installer
 ├── README.md
 ├── LICENSE

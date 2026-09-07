@@ -59,6 +59,13 @@
    notepad $PROFILE
    ```
 
+### Update-Toolkit Says "Not a Git Repository"
+
+This happened on PowerShell Gallery installs before 1.2.0. Update once with
+`Update-Module PowerShellDevToolkit` (or `Update-PSResource PowerShellDevToolkit`);
+from 1.2.0 on, `Update-Toolkit` detects Gallery installs and updates through the
+Gallery itself.
+
 ---
 
 ## Script Execution Issues
@@ -111,13 +118,11 @@ powershell -ExecutionPolicy Bypass -File .\script.ps1
 
 **Solution:**
 ```powershell
-# Create creds directory
-New-Item -Path ".\creds" -ItemType Directory -Force
-
-# Store credentials
-$cred = Get-Credential -UserName 'your-ssh-username'
-$cred | Export-Clixml '.\creds\ssh-credentials.xml'
+New-SSHCredential -UserName 'your-ssh-username'
 ```
+
+The message shows the exact path that was checked. Run `helpme` to see the
+toolkit data folder if it is not where you expect.
 
 ### "Neither WSL nor Posh-SSH Available"
 
@@ -157,10 +162,9 @@ $cred | Export-Clixml '.\creds\ssh-credentials.xml'
 **Solutions:**
 
 1. Verify username is correct
-2. Re-create credential file:
+2. Re-create the credential file:
    ```powershell
-   $cred = Get-Credential -UserName 'correct-username'
-   $cred | Export-Clixml '.\creds\ssh-credentials.xml'
+   New-SSHCredential -UserName 'correct-username' -Force
    ```
 3. Test password manually:
    ```powershell
@@ -258,9 +262,22 @@ Remove-Alias <alias-name>
 
 **Solution:**
 ```powershell
-Copy-Item config.example.json config.json
-notepad config.json
+Initialize-Toolkit
 ```
+
+### Where Is My config.json?
+
+The toolkit keeps `config.json` and `creds\` in a data folder that depends on
+the install type:
+
+| Install type | Data folder |
+|--------------|-------------|
+| Git clone | repo root |
+| PowerShell Gallery | `%LOCALAPPDATA%\PowerShellDevToolkit` |
+| `PSDT_HOME` set | `$env:PSDT_HOME` |
+
+`helpme` prints the resolved path. To move your config, set `PSDT_HOME` in your
+profile before `Import-Module PowerShellDevToolkit`.
 
 ### Invalid JSON in Config
 
@@ -280,7 +297,7 @@ notepad config.json
 
 3. Reset to example:
    ```powershell
-   Copy-Item config.example.json config.json
+   Initialize-Toolkit -Force
    ```
 
 ### Paths With Spaces

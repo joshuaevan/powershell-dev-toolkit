@@ -34,8 +34,13 @@ Install-PSResource PowerShellDevToolkit
 # Import it (add this line to your $PROFILE to load automatically)
 Import-Module PowerShellDevToolkit
 
+# First-run setup: creates config.json and the creds folder, then opens the config
+Initialize-Toolkit
+
+# Store your SSH username and password (encrypted with Windows DPAPI)
+New-SSHCredential
+
 # Verify installation
-Get-Command -Module PowerShellDevToolkit
 helpme
 ```
 
@@ -50,10 +55,10 @@ helpme
   ```powershell
    .\Setup-Environment.ps1
   ```
-3. **Configure your settings**
+3. **Create your configuration**
   ```powershell
-   Copy-Item config.example.json config.json
-   notepad config.json
+   Initialize-Toolkit          # creates config.json, opens it in your editor
+   New-SSHCredential           # stores your SSH username/password
   ```
 4. **Reload your profile**
   ```powershell
@@ -83,7 +88,29 @@ helpme
 - **Python** - For Python projects - [Download](https://www.python.org/downloads/)
 - **Composer** - For PHP dependency management - [Download](https://getcomposer.org/)
 
+## Configuration
+
+`Initialize-Toolkit` creates `config.json` and a `creds` folder in the toolkit
+data folder. Where that is depends on how you installed:
+
+| Install type | Data folder |
+|--------------|-------------|
+| Git clone | The repo root (same as previous versions) |
+| PowerShell Gallery | `%LOCALAPPDATA%\PowerShellDevToolkit` |
+| Either, with `PSDT_HOME` set | `$env:PSDT_HOME` |
+
+`helpme` shows the resolved path. Set `PSDT_SKIP_UPDATE_CHECK=1` to disable the
+startup update check, or set `toolkit.updateCheckDays` to `0` in `config.json`.
+
 ## Key Commands
+
+### Toolkit
+
+```powershell
+Initialize-Toolkit               # First-run setup (config.json + creds folder)
+New-SSHCredential                # Store SSH username/password
+Update-Toolkit                   # Update from git or the PowerShell Gallery
+```
 
 ### SSH & Remote Access
 
@@ -91,6 +118,7 @@ helpme
 cssh myserver                    # SSH to server
 tunnel myserver postgres         # PostgreSQL tunnel (port 5432)
 tunnel myserver mysql 3307       # MySQL tunnel with custom local port
+cssh <Tab>                       # Tab-complete server aliases from config.json
 ```
 
 ### Development

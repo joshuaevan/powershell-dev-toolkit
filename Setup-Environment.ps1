@@ -526,10 +526,9 @@ Write-Host " for command reference."
         Write-Host "SSH CREDENTIALS SETUP:" -ForegroundColor Yellow
         Write-Host "  To use SSH commands (cssh, tunnel), you need to store credentials." -ForegroundColor Gray
         Write-Host ""
-        Write-Host "  Run these commands to set up credentials:" -ForegroundColor Cyan
-        Write-Host "    # First, make sure you have config.json set up (copy from config.example.json)" -ForegroundColor Gray
-        Write-Host "    `$cred = Get-Credential -UserName 'your-ssh-username'" -ForegroundColor Yellow
-        Write-Host "    `$cred | Export-Clixml '$credsDir\ssh-credentials.xml'" -ForegroundColor Yellow
+        Write-Host "  After reloading your profile, run:" -ForegroundColor Cyan
+        Write-Host "    Initialize-Toolkit       # creates config.json and the creds folder, opens config" -ForegroundColor Yellow
+        Write-Host "    New-SSHCredential        # stores your SSH username and password (DPAPI-encrypted)" -ForegroundColor Yellow
         Write-Host ""
     }
     
